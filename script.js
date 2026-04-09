@@ -1,122 +1,118 @@
-// --- 1. Define Custom Blocks ---
+<script>
+    // --- 1. Block Definitions (Same as before) ---
+    Blockly.Blocks['ext_main'] = {
+      init: function() {
+        this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
+        this.appendDummyInput().appendField("ID:").appendField(new Blockly.FieldTextInput("myApp"), "ID");
+        this.appendStatementInput("BLOCKS").setCheck(null).appendField("Custom Blocks");
+        this.setColour("#9966FF");
+        this.maxInstances = 1; 
+      }
+    };
 
-// The main Extension definition block
-Blockly.Blocks['ext_main'] = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("Extension Name:")
-        .appendField(new Blockly.FieldTextInput("My Extension"), "NAME");
-    this.appendDummyInput()
-        .appendField("ID:")
-        .appendField(new Blockly.FieldTextInput("myExtension"), "ID");
-    this.appendStatementInput("BLOCKS")
-        .setCheck(null)
-        .appendField("Blocks");
-    this.setColour("#9966FF");
-    this.setTooltip("The root of your extension.");
-  }
-};
+    Blockly.Blocks['custom_block_creator'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("New Block - ID:")
+            .appendField(new Blockly.FieldTextInput("myBlock"), "BLOCK_ID")
+            .appendField("Name:")
+            .appendField(new Blockly.FieldTextInput("say [INPUT]"), "BLOCK_NAME");
+        this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
+        this.appendStatementInput("FUNCTION").setCheck(null).appendField("Function Logic");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour("#FFAB19");
+      }
+    };
 
-// Browser Category Blocks
-Blockly.Blocks['browser_alert'] = {
-  init: function() {
-    this.appendValueInput("TEXT").setCheck("String").appendField("alert");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#00BFFF");
-  }
-};
+    Blockly.Blocks['block_input_def'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("Input ID:")
+            .appendField(new Blockly.FieldTextInput("INPUT"), "INP_ID")
+            .appendField("Default:")
+            .appendField(new Blockly.FieldTextInput("Hello"), "DEFAULT")
+            .appendField("Type:")
+            .appendField(new Blockly.FieldDropdown([["string","STRING"], ["number","NUMBER"], ["boolean","BOOLEAN"]]), "TYPE");
+        this.setPreviousStatement(true, "input_def");
+        this.setNextStatement(true, "input_def");
+        this.setColour("#FF661A");
+      }
+    };
 
-Blockly.Blocks['browser_open'] = {
-  init: function() {
-    this.appendValueInput("URL").setCheck("String").appendField("open URL");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#00BFFF");
-  }
-};
+    // Standard blocks definitions...
+    Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").setCheck("String").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
 
-// Technical Category Block
-Blockly.Blocks['tech_eval'] = {
-  init: function() {
-    this.appendValueInput("JS").setCheck("String").appendField("run javascript");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#575E75");
-  }
-};
+    // --- 2. Initialize Blockly ---
+    const workspace = Blockly.inject('blocklyDiv', {
+        toolbox: document.getElementById('toolbox'),
+        renderer: 'zelos', 
+        zoom: {controls: true, wheel: true}
+    });
+    window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
+    Blockly.svgResize(workspace);
 
-// Time Category Block
-Blockly.Blocks['time_now'] = {
-  init: function() {
-    this.appendDummyInput().appendField("current timestamp");
-    this.setOutput(true, "Number");
-    this.setColour("#0FBD8C");
-  }
-};
+    // --- 3. THE REAL GENERATOR ---
+    function exportExtension() {
+        const root = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
+        if (!root) { alert("Add the Extension Root block first!"); return; }
+        
+        const extId = root.getFieldValue('ID').replace(/\s+/g, '');
+        const extName = root.getFieldValue('NAME');
 
-// Movement Placeholder
-Blockly.Blocks['move_step'] = {
-  init: function() {
-    this.appendValueInput("STEPS").setCheck("Number").appendField("move steps");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour("#4C97FF");
-  }
-};
+        // Find all custom blocks attached to the root
+        let blocksDefinitions = [];
+        let methods = [];
+        
+        let currentBlock = root.getInputTargetBlock('BLOCKS');
+        while (currentBlock) {
+            if (currentBlock.type === 'custom_block_creator') {
+                const bId = currentBlock.getFieldValue('BLOCK_ID');
+                const bName = currentBlock.getFieldValue('BLOCK_NAME');
+                
+                // Collect Inputs
+                let args = {};
+                let inputBlock = currentBlock.getInputTargetBlock('INPUTS');
+                while (inputBlock) {
+                    const inpId = inputBlock.getFieldValue('INP_ID');
+                    const inpDef = inputBlock.getFieldValue('DEFAULT');
+                    const inpType = inputBlock.getFieldValue('TYPE');
+                    args[inpId] = { type: `Scratch.ArgumentType.${inpType}`, defaultValue: inpDef };
+                    inputBlock = inputBlock.getNextBlock();
+                }
 
-// --- 2. Initialize Blockly ---
+                blocksDefinitions.push({
+                    opcode: bId,
+                    blockType: "Scratch.BlockType.COMMAND",
+                    text: bName,
+                    arguments: args
+                });
 
-const workspace = Blockly.inject('blocklyDiv', {
-    toolbox: document.getElementById('toolbox'),
-    renderer: 'zelos', // THE SCRATCH LOOK
-    theme: Blockly.Themes.Classic,
-    grid: { spacing: 25, length: 3, colour: '#ccc', snap: true },
-    zoom: { controls: true, wheel: true, startScale: 0.9 }
-});
+                // Generate a dummy method for the logic
+                methods.push(`${bId}(args) { console.log("Block ${bId} executed with:", args); }`);
+            }
+            currentBlock = currentBlock.getNextBlock();
+        }
 
-// --- 3. Extension Export Logic ---
-
-function exportExtension() {
-    const rootBlock = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
-    
-    if (!rootBlock) {
-        alert("Please add the 'Extension Root' block to your workspace first!");
-        return;
+        const code = `(function(Scratch) {
+    'use strict';
+    class ${extId} {
+        getInfo() {
+            return {
+                id: '${extId}',
+                name: '${extName}',
+                blocks: ${JSON.stringify(blocksDefinitions, null, 4).replace(/"Scratch\.(.*?)"/g, 'Scratch.$1')}
+            };
+        }
+        ${methods.join('\n        ')}
     }
-
-    const extName = rootBlock.getFieldValue('NAME');
-    const extId = rootBlock.getFieldValue('ID').replace(/\s+/g, '');
-
-    // Note: A real maker would iterate through the "BLOCKS" input to build the JSON.
-    // This is a template to show how the generated file is structured.
-    const generatedCode = `(function(Scratch) {
-  'use strict';
-  class ${extId} {
-    getInfo() {
-      return {
-        id: '${extId}',
-        name: '${extName}',
-        blocks: [
-          {
-            opcode: 'mainBlock',
-            blockType: Scratch.BlockType.COMMAND,
-            text: 'extension block run',
-          }
-        ]
-      };
-    }
-    mainBlock() {
-      console.log("${extName} is running!");
-    }
-  }
-  Scratch.extensions.register(new ${extId}());
+    Scratch.extensions.register(new ${extId}());
 })(Scratch);`;
 
-    const blob = new Blob([generatedCode], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${extId}.js`;
-    link.click();
-}
+        const blob = new Blob([code], {type: 'text/javascript'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = extId + '.js';
+        a.click();
+    }
+</script>
