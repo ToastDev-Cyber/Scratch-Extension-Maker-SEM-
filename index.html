@@ -1,52 +1,186 @@
-<script>
-    const workspace = Blockly.inject('blocklyDiv', {
-        toolbox: document.getElementById('toolbox'),
-        renderer: 'zelos',
-        grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
-    });
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scratch Extension Maker</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <style>
+        :root {
+            --scratch-blue: #4C97FF;
+            --dark-bg: #111;
+        }
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            font-family: sans-serif;
+            overflow: hidden;
+            background: #f9f9f9;
+        }
+        .navbar {
+            height: 50px;
+            background-color: var(--scratch-blue);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background: white;
+            color: var(--scratch-blue);
+        }
+        .copy-btn {
+            margin-left: auto;
+            background: #9966FF;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .view-content {
+            height: calc(100vh - 50px);
+            width: 100%;
+            display: none;
+        }
+        .view-content.active {
+            display: block;
+        }
+        #blocklyDiv {
+            height: 100%;
+            width: 100%;
+        }
+        #codeSection {
+            background: var(--dark-bg);
+            color: #00FF41;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            height: 100%;
+        }
+        .config-panel {
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .config-panel input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-block-btn {
+            background: var(--scratch-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-    const customBlocks = [];
+    <div class="navbar">
+        <button class="tab-button active" onclick="switchTab('editor')">Editor</button>
+        <button class="tab-button" onclick="switchTab('blocks')">Blocks</button>
+        <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
+        <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
 
-    function createNewBlock() {
-        const name = document.getElementById('blockName').value || 'my_block';
-        const color = document.getElementById('blockColor').value;
-        const type = 'c_' + name.toLowerCase().replace(/\s+/g, '_') + Date.now();
+    <div id="editor" class="view-content active">
+        <div id="blocklyDiv"></div>
+    </div>
 
-        Blockly.Blocks[type] = {
-            init: function() {
-                this.appendDummyInput().appendField(name);
-                this.setPreviousStatement(true, null);
-                this.setNextStatement(true, null);
-                this.setColour(color);
-            }
-        };
+    <div id="blocks" class="view-content">
+        <div class="config-panel">
+            <h2>Block Configurator</h2>
+            <p>Define custom blocks here.</p>
+            <input type="text" id="blockName" placeholder="Block Text">
+            <input type="color" id="blockColor" value="#ff6680">
+            <br><br>
+            <button class="add-block-btn" onclick="createNewBlock()">Add Block</button>
+        </div>
+    </div>
 
-        Blockly.JavaScript[type] = function(block) {
-            return `/* Logic for ${name} */\n`;
-        };
+    <div id="code" class="view-content">
+        <pre id="codeSection"></pre>
+    </div>
 
-        customBlocks.push({ type, name, color });
-        updateToolbox();
-        alert('Added to Custom category!');
-    }
+    <xml id="toolbox" style="display: none">
+        <category name="Logic" colour="#5C81A6">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+        </category>
+        <category name="Math" colour="#5CA65C">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Custom" colour="#FF6680" id="customCategory"></category>
+    </xml>
 
-    function updateToolbox() {
-        const toolboxXml = document.getElementById('toolbox');
-        const customCat = toolboxXml.querySelector('#customCategory');
-        customCat.innerHTML = '';
-        customBlocks.forEach(b => {
-            const block = document.createElement('block');
-            block.setAttribute('type', b.type);
-            customCat.appendChild(block);
+    <script>
+        const workspace = Blockly.inject('blocklyDiv', {
+            toolbox: document.getElementById('toolbox'),
+            renderer: 'zelos',
+            grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
-        workspace.updateToolbox(toolboxXml);
-    }
 
-    function generateFullExtension(workspaceCode) {
-        return `/*
-   This extension was made with Scratch Extension Maker!
-*/
-(async function(Scratch) {
+        const customBlocks = [];
+
+        function createNewBlock() {
+            const name = document.getElementById('blockName').value || 'my_block';
+            const color = document.getElementById('blockColor').value;
+            const id = 'c_' + name.toLowerCase().replace(/\s+/g, '_') + Date.now();
+
+            Blockly.Blocks[id] = {
+                init: function() {
+                    this.appendDummyInput().appendField(name);
+                    this.setPreviousStatement(true, null);
+                    this.setNextStatement(true, null);
+                    this.setColour(color);
+                }
+            };
+
+            Blockly.JavaScript[id] = function(block) {
+                return `await Extension.prototype["${id}"](args, util);\n`;
+            };
+
+            customBlocks.push({ id, name, color });
+            updateToolbox();
+            alert('Block Created!');
+        }
+
+        function updateToolbox() {
+            const toolboxXml = document.getElementById('toolbox');
+            const customCat = toolboxXml.querySelector('#customCategory');
+            customCat.innerHTML = '';
+            customBlocks.forEach(b => {
+                const block = document.createElement('block');
+                block.setAttribute('type', b.id);
+                customCat.appendChild(block);
+            });
+            workspace.updateToolbox(toolboxXml);
+        }
+
+        function generateFinalJS(innerCode) {
+            return `(async function(Scratch) {
     const variables = {};
     const blocks = [];
     const menus = {};
@@ -56,7 +190,6 @@
         return;
     }
 
-    /* Base Sound Engine from Template */
     function doSound(ab, cd, runtime) {
         const audioEngine = runtime.audioEngine;
         const fetchAsArrayBufferWithTimeout = (url) =>
@@ -73,7 +206,7 @@
                 xhr.open("GET", url);
                 xhr.send();
             });
-
+        
         const playSound = async (url, target) => {
             try {
                 if (!(await Scratch.canFetch(url))) throw new Error("Denied");
@@ -90,20 +223,20 @@
     class Extension {
         getInfo() {
             return {
-                "id": "generatedExtension",
+                "id": "myExtension",
                 "name": "Custom Extension",
                 "color1": "#0088ff",
                 "color2": "#0063ba",
                 "tbShow": true,
                 "blocks": [
                     {
-                        opcode: "mainBlock",
+                        opcode: "runBlocks",
                         blockType: Scratch.BlockType.COMMAND,
-                        text: "run extension blocks",
+                        text: "run blocks",
                         arguments: {}
                     },
                     ${customBlocks.map(b => `{
-                        opcode: "${b.type}",
+                        opcode: "${b.id}",
                         blockType: Scratch.BlockType.COMMAND,
                         text: "${b.name}",
                         arguments: {}
@@ -114,38 +247,39 @@
         }
     }
 
-    Extension.prototype["mainBlock"] = async (args, util) => {
-        ${workspaceCode}
+    Extension.prototype["runBlocks"] = async (args, util) => {
+        ${innerCode}
     };
 
-    ${customBlocks.map(b => `Extension.prototype["${b.type}"] = async (args, util) => {
-        console.log("Executed: ${b.name}");
+    ${customBlocks.map(b => `Extension.prototype["${b.id}"] = async (args, util) => {
+        console.log("Custom Block ${b.name} Triggered");
     };`).join('\n\n    ')}
 
     Scratch.extensions.register(new Extension());
 })(Scratch);`;
-    }
-
-    function switchTab(id) {
-        document.querySelectorAll('.tab-button').forEach(b => {
-            b.classList.remove('active');
-            if(b.getAttribute('onclick').includes(`'${id}'`)) b.classList.add('active');
-        });
-        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-
-        if(id === 'code') {
-            const rawCode = Blockly.JavaScript.workspaceToCode(workspace);
-            document.getElementById('codeSection').innerText = generateFullExtension(rawCode);
         }
-        if(id === 'editor') {
-            Blockly.svgResize(workspace);
-        }
-    }
 
-    function copyToClipboard() {
-        const text = document.getElementById('codeSection').innerText;
-        navigator.clipboard.writeText(text);
-        alert("Copied!");
-    }
-</script>
+        function switchTab(id) {
+            document.querySelectorAll('.tab-button').forEach(b => {
+                b.classList.remove('active');
+                if(b.getAttribute('onclick').includes(`'${id}'`)) b.classList.add('active');
+            });
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            if(id === 'code') {
+                const rawCode = Blockly.JavaScript.workspaceToCode(workspace);
+                document.getElementById('codeSection').textContent = generateFinalJS(rawCode);
+            }
+            if(id === 'editor') {
+                Blockly.svgResize(workspace);
+            }
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('codeSection').textContent;
+            navigator.clipboard.writeText(code).then(() => alert("Copied!"));
+        }
+    </script>
+</body>
+</html>
