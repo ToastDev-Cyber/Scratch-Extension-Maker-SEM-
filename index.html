@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Scratch Extension Maker Pro (Embedded Args)</title>
+    <title>Scratch Extension Maker Pro</title>
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
@@ -12,35 +12,23 @@
         .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
         .tab-button { padding: 8px 20px; border: none; border-radius: 5px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
         .tab-button.active { background: white; color: var(--scratch-blue); }
-        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .copy-btn { margin-left: auto; background: #9966FF; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .view-content { height: calc(100vh - 50px); width: 100%; display: none; }
         .view-content.active { display: block; }
         #blocklyDiv { height: 100%; width: 100%; }
         #codeSection { background: var(--dark-bg); color: #00FF41; padding: 20px; box-sizing: border-box; overflow-y: auto; font-family: 'Courier New', monospace; white-space: pre; height: 100%; margin: 0; }
         .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; }
         .add-block-btn { background: var(--scratch-blue); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <button class="settings-btn" onclick="toggleModal(true)">⚙️ Settings</button>
         <button class="tab-button active" onclick="switchTab('editor')">Editor</button>
         <button class="tab-button" onclick="switchTab('blocks')">Blocks</button>
         <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
-    </div>
-
-    <div id="settingsModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
-        <div style="background:white; margin:10% auto; padding:25px; border-radius:12px; width:350px;">
-            <h3>Extension Meta</h3>
-            <label>ID:</label><input type="text" id="extID" value="myExt" style="width:100%"><br>
-            <label>Name:</label><input type="text" id="extName" value="Custom Extension" style="width:100%"><br>
-            <label>Color:</label><input type="color" id="extColor1" value="#9966FF" style="width:100%"><br>
-            <button onclick="toggleModal(false)" style="margin-top:10px; width:100%;">Save</button>
-        </div>
     </div>
 
     <div id="editor" class="view-content active">
@@ -49,17 +37,11 @@
 
     <div id="blocks" class="view-content">
         <div class="config-panel">
-            <h2>Block Template Designer</h2>
-            <p>Type your label with tags: <b>[string]</b>, <b>(reporter)</b>, <b>&lt;boolean&gt;</b>, or <b>()</b></p>
-            <input type="text" id="blockName" style="width: 80%;" placeholder="Example: log [message] if <condition>">
+            <h2>Block & Arg Designer</h2>
+            <p>Type your label. Use <b>[name]</b>, <b>(name)</b>, or <b>&lt;name&gt;</b> to create usable inputs.</p>
+            <input type="text" id="blockName" style="width: 80%;" placeholder="Example: calculate (a) + (b)">
             <br>
-            <select id="blockShape">
-                <option value="COMMAND">Stack Block</option>
-                <option value="REPORTER">Reporter Block</option>
-                <option value="BOOLEAN">Boolean Block</option>
-            </select>
-            <br>
-            <button class="add-block-btn" onclick="createNewBlock()">Generate Definition</button>
+            <button class="add-block-btn" onclick="createNewBlock()">Create Block & Usable Args</button>
         </div>
     </div>
 
@@ -73,7 +55,7 @@
     </xml>
 
     <script>
-        // Setup Return Block
+        // Return block implementation
         Blockly.Blocks['ext_return'] = {
             init: function() {
                 this.appendValueInput("VALUE").appendField("return");
@@ -94,134 +76,81 @@
 
         const customBlocks = [];
 
-        function toggleModal(show) { document.getElementById('settingsModal').style.display = show ? 'block' : 'none'; }
-
         function createNewBlock() {
             const rawLabel = document.getElementById('blockName').value || 'my block';
-            const shape = document.getElementById('blockShape').value;
-            const themeColor = document.getElementById('extColor1').value;
+            const themeColor = "#9966FF";
             const blockOpcode = 'op_' + Math.random().toString(36).substr(2, 5);
 
-            // Parsing logic for templates
-            const patterns = [
-                { regex: /\[([^\]]+)\]/g, type: 'string', tag: '[]' },
-                { regex: /<([^>]+)>/g, type: 'boolean', tag: '<>' },
-                { regex: /\(([^)]+)\)/g, type: 'number', tag: '()' },
-                { regex: /\(\)/g, type: 'reporter', tag: 'empty' }
-            ];
-
-            let textParts = rawLabel.split(/(\[[^\]]+\]|<[^>]+>|\([^)]+\)|\(\))/g);
+            // Parsing labels and types
+            const argRegex = /(\[[^\]]+\]|<[^>]+>|\([^)]+\)|\(\))/g;
+            let textParts = rawLabel.split(argRegex);
             const args = [];
 
-            // Define the block logic
+            // Define the Definition Block
             Blockly.Blocks[blockOpcode] = {
                 init: function() {
-                    let input = this.appendDummyInput().appendField("define");
-                    
+                    let header = this.appendDummyInput().appendField("define");
                     textParts.forEach(part => {
                         if (!part) return;
-                        
-                        let matched = false;
-                        if (part === "()") {
-                            args.push({ id: 'REP' + (args.length+1), type: 'string', label: 'value' });
-                            input.appendField(new Blockly.FieldLabel(" ( ) "));
-                            matched = true;
-                        } else if (part.startsWith('[') && part.endsWith(']')) {
-                            let label = part.slice(1, -1);
-                            args.push({ id: label.toUpperCase(), type: 'string', label: label });
-                            input.appendField(new Blockly.FieldLabel(` [${label}] `));
-                            matched = true;
-                        } else if (part.startsWith('<') && part.endsWith('>')) {
-                            let label = part.slice(1, -1);
-                            args.push({ id: label.toUpperCase(), type: 'boolean', label: label });
-                            input.appendField(new Blockly.FieldLabel(` <${label}> `));
-                            matched = true;
-                        } else if (part.startsWith('(') && part.endsWith(')')) {
-                            let label = part.slice(1, -1);
-                            args.push({ id: label.toUpperCase(), type: 'number', label: label });
-                            input.appendField(new Blockly.FieldLabel(` (${label}) `));
-                            matched = true;
+                        if (part.match(argRegex)) {
+                            const label = part.replace(/[\[\]<>\(\)]/g, '') || "arg";
+                            const type = part.startsWith('<') ? 'boolean' : 'reporter';
+                            args.push({ id: label.toUpperCase() + "_" + args.length, label, type });
+                            header.appendField(` ${part} `);
+                        } else {
+                            header.appendField(part);
                         }
-
-                        if (!matched) input.appendField(part);
                     });
-
                     this.appendStatementInput("STACK");
                     this.setColour(themeColor);
                 }
             };
+            Blockly.JavaScript[blockOpcode] = () => '';
 
-            // Register the reporters for this block's arguments so user can use them
-            args.forEach(arg => {
+            // Create the Hat Block
+            const defBlock = workspace.newBlock(blockOpcode);
+            defBlock.initSvg(); defBlock.render();
+            defBlock.moveBy(50, 50 + (customBlocks.length * 150));
+
+            // CREATE USABLE OUTPUT BLOCKS (The actual draggable reporters)
+            args.forEach((arg, index) => {
                 const argOp = `arg_${blockOpcode}_${arg.id}`;
                 Blockly.Blocks[argOp] = {
                     init: function() {
                         this.appendDummyInput().appendField(arg.label);
                         this.setOutput(true, arg.type === 'boolean' ? 'Boolean' : null);
-                        this.setColour("#FFAB19");
+                        this.setColour("#FFAB19"); // Orange like Scratch args
                     }
                 };
                 Blockly.JavaScript[argOp] = () => [`args.${arg.id}`, Blockly.JavaScript.ORDER_ATOMIC];
                 
-                // Spawn argument block next to definition
+                // Spawn it next to the hat
                 const argBlock = workspace.newBlock(argOp);
                 argBlock.initSvg(); argBlock.render();
-                argBlock.moveBy(400, 50 + (customBlocks.length * 150) + (args.indexOf(arg) * 40));
+                argBlock.moveBy(400, 50 + (customBlocks.length * 150) + (index * 45));
             });
 
-            const defBlock = workspace.newBlock(blockOpcode);
-            defBlock.initSvg(); defBlock.render();
-            defBlock.moveBy(50, 50 + (customBlocks.length * 150));
-
-            customBlocks.push({ opcode: blockOpcode, name: rawLabel, shape, args });
+            customBlocks.push({ opcode: blockOpcode, name: rawLabel, args });
             switchTab('editor');
         }
 
         function generateFinalJS() {
-            const name = document.getElementById('extName').value;
-            const id = document.getElementById('extID').value;
-            const c1 = document.getElementById('extColor1').value;
-
             const blockDefs = customBlocks.map(b => {
                 let sArgs = {};
-                b.args.forEach(a => { sArgs[a.id] = { type: a.type, defaultValue: '' }; });
-                return `                {
-                    opcode: "${b.opcode}",
-                    blockType: Scratch.BlockType.${b.shape},
-                    text: "${b.name.replace(/[\[\]<>\(\)]/g, '')}", // Clean text for Scratch
-                    arguments: ${JSON.stringify(sArgs)}
-                }`;
+                b.args.forEach(a => { sArgs[a.id] = { type: a.type === 'boolean' ? 'boolean' : 'string', defaultValue: '' }; });
+                return `{ opcode: "${b.opcode}", blockType: "command", text: "${b.name.replace(/[\[\]<>\(\)]/g, '')}", arguments: ${JSON.stringify(sArgs)} }`;
             }).join(',\n');
 
             const implementations = customBlocks.map(b => {
                 const hat = workspace.getAllBlocks(false).find(x => x.type === b.opcode);
                 const code = hat ? Blockly.JavaScript.statementToCode(hat, 'STACK') : "";
-                return `    Extension.prototype["${b.opcode}"] = async (args, util) => {
-${code}
-    };`;
+                return `    Extension.prototype["${b.opcode}"] = async (args, util) => {\n${code}\n    };`;
             }).join('\n\n');
 
-            return `(async function(Scratch) {
-    if (!Scratch.extensions.unsandboxed) return;
-    class Extension {
-        getInfo() {
-            return {
-                id: "${id}",
-                name: "${name}",
-                color1: "${c1}",
-                blocks: [\n${blockDefs}\n                ]
-            };
-        }
-    }
-${implementations}
-    Scratch.extensions.register(new Extension());
-})(Scratch);`;
+            return `(async function(Scratch) {\n    class Extension {\n        getInfo() {\n            return {\n                id: "customExt",\n                name: "Custom Extension",\n                blocks: [\n${blockDefs}\n                ]\n            };\n        }\n    }\n${implementations}\n    Scratch.extensions.register(new Extension());\n})(Scratch);`;
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            const activeBtn = Array.from(document.querySelectorAll('.tab-button')).find(b => b.innerText.toLowerCase().includes(tabId));
-            if(activeBtn) activeBtn.classList.add('active');
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             if(tabId === 'code') document.getElementById('codeSection').textContent = generateFinalJS();
