@@ -22,7 +22,6 @@
             background: #f9f9f9;
         }
 
-        /* Top Navigation Bar */
         .navbar {
             height: 50px;
             background-color: var(--scratch-blue);
@@ -64,7 +63,6 @@
             cursor: pointer;
         }
 
-        /* View Content Sections */
         .view-content {
             height: calc(100vh - 50px);
             width: 100%;
@@ -80,12 +78,10 @@
             width: 100%;
         }
 
-        /* Code Preview Styling */
         #codeSection {
             background: var(--dark-bg);
             color: #00FF41;
             padding: 20px;
-            height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
@@ -135,49 +131,36 @@
     </xml>
 
     <script>
-        // Initialize Blockly
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
             renderer: 'zelos',
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
 
-        // Tab Switching Logic
         function switchTab(tabName) {
-            // Update Buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
                 if(btn.innerText.toLowerCase().includes(tabName)) btn.classList.add('active');
             });
 
-            // Update Content
             document.querySelectorAll('.view-content').forEach(view => {
                 view.classList.remove('active');
             });
             document.getElementById(tabName).classList.add('active');
 
-            // If switching to code tab, update the code
             if(tabName === 'code') {
-                const generatedCode = javascriptGenerator.workspaceToCode(workspace);
-                document.getElementById('codeSection').innerText = generatedCode || "// Drag some blocks first!";
+                const generatedCode = Blockly.JavaScript.workspaceToCode(workspace);
+                document.getElementById('codeSection').innerText = generatedCode;
             }
-
-            // Resize Blockly workspace when returning to it
-            if(tabName === 'blocks') {
-                Blockly.svgResize(workspace);
-            }
+            Blockly.svgResize(workspace);
         }
 
-        // Copy Logic
         function copyToClipboard() {
             const code = document.getElementById('codeSection').innerText;
             navigator.clipboard.writeText(code).then(() => {
                 alert("Code copied!");
             });
         }
-
-        // Force resize check for reliability
-        window.addEventListener('resize', () => Blockly.svgResize(workspace));
     </script>
 </body>
 </html>
