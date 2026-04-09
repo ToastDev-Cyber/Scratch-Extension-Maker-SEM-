@@ -35,48 +35,49 @@
         </category>
 
         <category name="Architects" colour="#FFAB19">
-            <label text="Choose Template"></label>
-            <block type="arch_stack_hat"></block>
-            <block type="arch_loop"></block>
+            <label text="Block Templates"></label>
+            <block type="arch_command_hat"></block>
             <block type="arch_value"></block>
+            <block type="arch_loop"></block>
             <sep gap="12"></sep>
-            <label text="Fields"></label>
+            <label text="Configuration"></label>
             <block type="block_input_def"></block>
         </category>
 
         <category name="Logic Blocks" colour="#4C97FF">
             <block type="get_input_value"></block>
             <block type="return_block"></block>
-            <sep gap="12"></sep>
+            <sep gap="24"></sep>
             <block type="tech_eval"></block>
             <block type="browser_alert"></block>
             <block type="logic_compare"></block>
             <block type="math_number"></block>
+            <block type="text"></block>
         </category>
     </xml>
 
     <script>
-        // --- 1. THE THREE ARCHITECT TEMPLATES ---
+        // --- 1. THE REFINED ARCHITECT DEFINITIONS ---
 
         // Root
         Blockly.Blocks['ext_main'] = {
           init: function() {
             this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
             this.appendDummyInput().appendField("ID:").appendField(new Blockly.FieldTextInput("myApp"), "ID");
-            this.appendStatementInput("BLOCKS").setCheck(null).appendField("Content");
+            this.appendStatementInput("BLOCKS").setCheck(null).appendField("Blocks");
             this.setColour("#9966FF");
             this.maxInstances = 1; 
           }
         };
 
-        // ARCHITECT 1: Stack & Hats (The "Command" blocks)
-        Blockly.Blocks['arch_stack_hat'] = {
+        // 1. COMMAND & HAT ARCHITECT
+        Blockly.Blocks['arch_command_hat'] = {
           init: function() {
             this.appendDummyInput().appendField("Stack/Hat - ID:").appendField(new Blockly.FieldTextInput("myBlock"), "BLOCK_ID");
-            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("block [INP]"), "BLOCK_NAME");
+            this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("do [INP]"), "BLOCK_NAME");
             this.appendDummyInput()
                 .appendField("Shape:")
-                .appendField(new Blockly.FieldDropdown([["Command (Stack)", "COMMAND"], ["Hat (Event)", "HAT"]]), "TYPE");
+                .appendField(new Blockly.FieldDropdown([["Command", "COMMAND"], ["Hat", "HAT"]]), "TYPE");
             this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
             this.appendStatementInput("FUNCTION").setCheck(null).appendField("Logic");
             this.setPreviousStatement(true, null); this.setNextStatement(true, null);
@@ -84,34 +85,35 @@
           }
         };
 
-        // ARCHITECT 2: Loops (The "C" blocks)
-        Blockly.Blocks['arch_loop'] = {
-          init: function() {
-            this.appendDummyInput().appendField("Loop (C-Block) - ID:").appendField(new Blockly.FieldTextInput("myLoop"), "BLOCK_ID");
-            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("repeat [INP]"), "BLOCK_NAME");
-            this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
-            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Loop Core Logic");
-            this.setPreviousStatement(true, null); this.setNextStatement(true, null);
-            this.setColour("#FFAB19");
-          }
-        };
-
-        // ARCHITECT 3: Value Blocks (The "Round/Diamond" blocks)
+        // 2. REPORTER & BOOLEAN ARCHITECT
         Blockly.Blocks['arch_value'] = {
           init: function() {
-            this.appendDummyInput().appendField("Value - ID:").appendField(new Blockly.FieldTextInput("myValue"), "BLOCK_ID");
-            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("get [INP]"), "BLOCK_NAME");
+            this.appendDummyInput().appendField("Value Block - ID:").appendField(new Blockly.FieldTextInput("myValue"), "BLOCK_ID");
+            this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("value of [INP]"), "BLOCK_NAME");
             this.appendDummyInput()
                 .appendField("Shape:")
-                .appendField(new Blockly.FieldDropdown([["Reporter (Round)", "REPORTER"], ["Boolean (Diamond)", "BOOLEAN"]]), "TYPE");
+                .appendField(new Blockly.FieldDropdown([["Reporter", "REPORTER"], ["Boolean", "BOOLEAN"]]), "TYPE");
             this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
-            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Calculate & Return");
+            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Calculation");
             this.setPreviousStatement(true, null); this.setNextStatement(true, null);
             this.setColour("#FFAB19");
           }
         };
 
-        // Helpers
+        // 3. LOOP ARCHITECT (Stand-alone)
+        Blockly.Blocks['arch_loop'] = {
+          init: function() {
+            this.appendDummyInput().appendField("Loop Block - ID:").appendField(new Blockly.FieldTextInput("myLoop"), "BLOCK_ID");
+            this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("repeat [INP]"), "BLOCK_NAME");
+            this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
+            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Inner Logic (C-Slot)");
+            this.setPreviousStatement(true, null); this.setNextStatement(true, null);
+            this.setColour("#FFAB19");
+            this.setTooltip("Creates a block with a C-mouth that runs logic inside.");
+          }
+        };
+
+        // Configuration Helpers
         Blockly.Blocks['block_input_def'] = {
           init: function() {
             this.appendDummyInput().appendField("Input ID:").appendField(new Blockly.FieldTextInput("INP"), "INP_ID")
@@ -121,6 +123,7 @@
           }
         };
 
+        // Logic Helpers
         Blockly.Blocks['get_input_value'] = {
           init: function() {
             this.appendDummyInput().appendField("value of").appendField(new Blockly.FieldTextInput("INP"), "VAR_ID");
@@ -151,7 +154,7 @@
         Blockly.svgResize(workspace);
 
         function exportExtension() {
-            alert("Architect Phase Complete. Editor ready for mechanics integration.");
+            alert("Architect Phase Finished. All templates are standalone and ready.");
         }
     </script>
 </body>
