@@ -71,6 +71,7 @@
             font-family: 'Courier New', monospace;
             white-space: pre;
             height: 100%;
+            margin: 0;
         }
         .config-panel {
             padding: 40px;
@@ -79,19 +80,14 @@
             text-align: center;
         }
         .config-panel input {
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px; margin: 10px;
+            border: 1px solid #ccc; border-radius: 4px;
         }
         .add-block-btn {
             background: var(--scratch-blue);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
+            color: white; border: none;
+            padding: 10px 20px; border-radius: 5px;
+            cursor: pointer; font-weight: bold;
         }
     </style>
 </head>
@@ -111,7 +107,6 @@
     <div id="blocks" class="view-content">
         <div class="config-panel">
             <h2>Block Configurator</h2>
-            <p>Define custom blocks here.</p>
             <input type="text" id="blockName" placeholder="Block Text">
             <input type="color" id="blockColor" value="#ff6680">
             <br><br>
@@ -159,7 +154,7 @@
             };
 
             Blockly.JavaScript[id] = function(block) {
-                return `await Extension.prototype["${id}"](args, util);\n`;
+                return 'await Extension.prototype["' + id + '"](args, util);\n';
             };
 
             customBlocks.push({ id, name, color });
@@ -180,6 +175,14 @@
         }
 
         function generateFinalJS(innerCode) {
+            let blockList = customBlocks.map(b => {
+                return '                    {\n                        opcode: "' + b.id + '",\n                        blockType: Scratch.BlockType.COMMAND,\n                        text: "' + b.name + '",\n                        arguments: {}\n                    }';
+            }).join(',\n');
+
+            let prototypeList = customBlocks.map(b => {
+                return '    Extension.prototype["' + b.id + '"] = async (args, util) => {\n        console.log("Custom Block ' + b.name + ' Triggered");\n    };';
+            }).join('\n\n');
+
             return `(async function(Scratch) {
     const variables = {};
     const blocks = [];
@@ -235,12 +238,7 @@
                         text: "run blocks",
                         arguments: {}
                     },
-                    ${customBlocks.map(b => `{
-                        opcode: "${b.id}",
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: "${b.name}",
-                        arguments: {}
-                    }`).join(',\n                    ')}
+${blockList}
                 ],
                 "menus": menus
             }
@@ -248,12 +246,10 @@
     }
 
     Extension.prototype["runBlocks"] = async (args, util) => {
-        ${innerCode}
+${innerCode}
     };
 
-    ${customBlocks.map(b => `Extension.prototype["${b.id}"] = async (args, util) => {
-        console.log("Custom Block ${b.name} Triggered");
-    };`).join('\n\n    ')}
+${prototypeList}
 
     Scratch.extensions.register(new Extension());
 })(Scratch);`;
@@ -262,7 +258,7 @@
         function switchTab(id) {
             document.querySelectorAll('.tab-button').forEach(b => {
                 b.classList.remove('active');
-                if(b.getAttribute('onclick').includes(`'${id}'`)) b.classList.add('active');
+                if(b.getAttribute('onclick').includes("'" + id + "'")) b.classList.add('active');
             });
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
