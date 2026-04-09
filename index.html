@@ -43,16 +43,29 @@
         </category>
 
         <sep></sep>
-        <category name="Logic" colour="#59C059"><block type="logic_compare"></block><block type="logic_operation"></block><block type="logic_boolean"></block></category>
-        <category name="Math" colour="#59C059"><block type="math_number"></block><block type="math_arithmetic"></block></category>
-        <category name="Strings" colour="#59C059"><block type="text"></block><block type="text_join"></block></category>
-        <category name="Technical" colour="#575E75"><block type="tech_eval"></block><block type="browser_alert"></block></category>
+        <category name="Logic" colour="#59C059">
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_boolean"></block>
+        </category>
+        <category name="Math" colour="#59C059">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Strings" colour="#59C059">
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
+        <category name="Technical" colour="#575E75">
+            <block type="tech_eval"></block>
+            <block type="browser_alert"></block>
+            <block type="tech_console"></block>
+        </category>
     </xml>
 
     <script>
         // --- 1. Custom Block Definitions ---
 
-        // Root Extension
         Blockly.Blocks['ext_main'] = {
           init: function() {
             this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
@@ -63,7 +76,7 @@
           }
         };
 
-        // Custom Block Creator
+        // Creator Block with Dropdown for Type
         Blockly.Blocks['custom_block_creator'] = {
           init: function() {
             this.appendDummyInput()
@@ -71,6 +84,15 @@
                 .appendField(new Blockly.FieldTextInput("myBlock"), "BLOCK_ID")
                 .appendField("Name:")
                 .appendField(new Blockly.FieldTextInput("say [INPUT]"), "BLOCK_NAME");
+            this.appendDummyInput()
+                .appendField("Type:")
+                .appendField(new Blockly.FieldDropdown([
+                    ["Command", "COMMAND"], 
+                    ["Reporter", "REPORTER"], 
+                    ["Boolean", "BOOLEAN"], 
+                    ["Hat", "HAT"],
+                    ["Loop", "LOOP"]
+                ]), "BLOCK_TYPE");
             this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
             this.appendStatementInput("FUNCTION").setCheck(null).appendField("Function Logic");
             this.setPreviousStatement(true, null);
@@ -79,7 +101,6 @@
           }
         };
 
-        // Input Definition
         Blockly.Blocks['block_input_def'] = {
           init: function() {
             this.appendDummyInput()
@@ -95,19 +116,14 @@
           }
         };
 
-        // NEW: Get Input Value Reporter
         Blockly.Blocks['get_input_value'] = {
           init: function() {
-            this.appendDummyInput()
-                .appendField("get value of")
-                .appendField(new Blockly.FieldTextInput("INPUT"), "VAR_ID");
+            this.appendDummyInput().appendField("get value of").appendField(new Blockly.FieldTextInput("INPUT"), "VAR_ID");
             this.setOutput(true, null);
             this.setColour("#4C97FF");
-            this.setTooltip("Gets the value passed into the block by the Scratch user.");
           }
         };
 
-        // Return Block
         Blockly.Blocks['return_block'] = {
           init: function() {
             this.appendValueInput("VALUE").setCheck(null).appendField("return");
@@ -117,8 +133,9 @@
         };
 
         // Technical
-        Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").setCheck("String").appendField("run javascript"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
+        Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").setCheck("String").appendField("eval js"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
         Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").setCheck("String").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
+        Blockly.Blocks['tech_console'] = { init: function() { this.appendValueInput("LOG").setCheck(null).appendField("console.log"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
 
         // --- 2. Initialize Blockly ---
         const workspace = Blockly.inject('blocklyDiv', {
@@ -129,20 +146,17 @@
             trashcan: true
         });
 
-        // Resize Fix
         window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
         Blockly.svgResize(workspace);
 
-        // --- 3. Custom JavaScript Generator for Logic ---
-        // This maps the 'get_input_value' block to actual code
+        // --- 3. JavaScript Generator setup ---
         const javascriptGenerator = Blockly.JavaScript;
         javascriptGenerator['get_input_value'] = function(block) {
-            const varId = block.getFieldValue('VAR_ID');
-            return [`args.${varId}`, javascriptGenerator.ORDER_ATOMIC];
+            return [`args.${block.getFieldValue('VAR_ID')}`, javascriptGenerator.ORDER_ATOMIC];
         };
         javascriptGenerator['return_block'] = function(block) {
-            const value = javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '""';
-            return `return ${value};\n`;
+            const val = javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '""';
+            return `return ${val};\n`;
         };
         javascriptGenerator['tech_eval'] = function(block) {
             const js = javascriptGenerator.valueToCode(block, 'JS', javascriptGenerator.ORDER_NONE) || '""';
@@ -152,47 +166,50 @@
             const msg = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_NONE) || '""';
             return `alert(${msg});\n`;
         };
+        javascriptGenerator['tech_console'] = function(block) {
+            const log = javascriptGenerator.valueToCode(block, 'LOG', javascriptGenerator.ORDER_NONE) || '""';
+            return `console.log(${log});\n`;
+        };
 
         // --- 4. Export Logic ---
         function exportExtension() {
             const root = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
-            if (!root) { alert("Add the Extension Root block first!"); return; }
+            if (!root) { alert("Add Setup block!"); return; }
             
             const extId = root.getFieldValue('ID').replace(/\s+/g, '');
             const extName = root.getFieldValue('NAME');
 
-            let blocksDefinitions = [];
+            let blocksList = [];
             let methods = [];
             
-            let currentBlock = root.getInputTargetBlock('BLOCKS');
-            while (currentBlock) {
-                if (currentBlock.type === 'custom_block_creator') {
-                    const bId = currentBlock.getFieldValue('BLOCK_ID');
-                    const bName = currentBlock.getFieldValue('BLOCK_NAME');
+            let block = root.getInputTargetBlock('BLOCKS');
+            while (block) {
+                if (block.type === 'custom_block_creator') {
+                    const bId = block.getFieldValue('BLOCK_ID');
+                    const bName = block.getFieldValue('BLOCK_NAME');
+                    const bType = block.getFieldValue('BLOCK_TYPE');
                     
-                    // Collect Inputs
                     let args = {};
-                    let inputBlock = currentBlock.getInputTargetBlock('INPUTS');
-                    while (inputBlock) {
-                        const inpId = inputBlock.getFieldValue('INP_ID');
-                        const inpDef = inputBlock.getFieldValue('DEFAULT');
-                        const inpType = inputBlock.getFieldValue('TYPE');
-                        args[inpId] = { type: `Scratch.ArgumentType.${inpType}`, defaultValue: inpDef };
-                        inputBlock = inputBlock.getNextBlock();
+                    let input = block.getInputTargetBlock('INPUTS');
+                    while (input) {
+                        args[input.getFieldValue('INP_ID')] = { 
+                            type: `Scratch.ArgumentType.${input.getFieldValue('TYPE')}`, 
+                            defaultValue: input.getFieldValue('DEFAULT') 
+                        };
+                        input = input.getNextBlock();
                     }
 
-                    blocksDefinitions.push({
+                    blocksList.push({
                         opcode: bId,
-                        blockType: "Scratch.BlockType.COMMAND",
+                        blockType: `Scratch.BlockType.${bType}`,
                         text: bName,
                         arguments: args
                     });
 
-                    // Convert internal blocks into actual JavaScript logic
-                    const functionLogic = javascriptGenerator.statementToCode(currentBlock, 'FUNCTION');
-                    methods.push(`${bId}(args) {\n        ${functionLogic || 'console.log("No logic defined");'}\n    }`);
+                    const logic = javascriptGenerator.statementToCode(block, 'FUNCTION');
+                    methods.push(`${bId}(args) {\n        ${logic || '// No logic'}\n    }`);
                 }
-                currentBlock = currentBlock.getNextBlock();
+                block = block.getNextBlock();
             }
 
             const finalJS = `(function(Scratch) {
@@ -202,7 +219,7 @@
             return {
                 id: '${extId}',
                 name: '${extName}',
-                blocks: ${JSON.stringify(blocksDefinitions, null, 8).replace(/"Scratch\.(.*?)"/g, 'Scratch.$1')}
+                blocks: ${JSON.stringify(blocksList, null, 8).replace(/"Scratch\.(.*?)"/g, 'Scratch.$1')}
             };
         }
         ${methods.join('\n\n        ')}
