@@ -6,14 +6,12 @@
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-    
     <style>
         :root {
             --scratch-blue: #4C97FF;
             --dark-bg: #111;
             --tab-inactive: #333;
         }
-
         body, html {
             margin: 0; padding: 0;
             height: 100%; width: 100%;
@@ -21,7 +19,6 @@
             overflow: hidden;
             background: #f9f9f9;
         }
-
         .navbar {
             height: 50px;
             background-color: var(--scratch-blue);
@@ -31,7 +28,6 @@
             gap: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
         .tab-button {
             padding: 8px 20px;
             border: none;
@@ -42,16 +38,13 @@
             cursor: pointer;
             transition: 0.2s;
         }
-
         .tab-button.active {
             background: white;
             color: var(--scratch-blue);
         }
-
         .tab-button:hover:not(.active) {
             background: rgba(255,255,255,0.3);
         }
-
         .copy-btn {
             margin-left: auto;
             background: #9966FF;
@@ -62,22 +55,18 @@
             font-weight: bold;
             cursor: pointer;
         }
-
         .view-content {
             height: calc(100vh - 50px);
             width: 100%;
             display: none;
         }
-
         .view-content.active {
             display: block;
         }
-
         #blocklyDiv {
             height: 100%;
             width: 100%;
         }
-
         #codeSection {
             background: var(--dark-bg);
             color: #00FF41;
@@ -87,7 +76,6 @@
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
         }
-
         .info-section {
             padding: 40px;
             text-align: center;
@@ -96,7 +84,6 @@
     </style>
 </head>
 <body>
-
     <div class="navbar">
         <button class="tab-button active" onclick="switchTab('blocks')">Editor</button>
         <button class="tab-button" onclick="switchTab('editor')">Blocks</button>
@@ -137,23 +124,23 @@
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
 
-        function switchTab(tabName) {
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
-                if(btn.innerText.toLowerCase().includes(tabName)) btn.classList.add('active');
+                if(btn.getAttribute('onclick').includes(`'${tabId}'`)) btn.classList.add('active');
             });
 
             document.querySelectorAll('.view-content').forEach(view => {
                 view.classList.remove('active');
             });
-            document.getElementById(tabName).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
 
-            if(tabName === 'code') {
+            if(tabId === 'code') {
                 const generatedCode = Blockly.JavaScript.workspaceToCode(workspace);
                 document.getElementById('codeSection').innerText = generatedCode;
             }
             
-            if(tabName === 'editor') {
+            if(tabId === 'editor') {
                 Blockly.svgResize(workspace);
             }
         }
