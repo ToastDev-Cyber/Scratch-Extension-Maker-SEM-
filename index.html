@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scratch Extension Maker Pro</title>
+    <title>Scratch Extension Architect</title>
     
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
@@ -16,13 +16,12 @@
         #blocklyArea { height: calc(100vh - 55px); width: 100%; position: relative; }
         #blocklyDiv { position: absolute; top: 0; left: 0; bottom: 0; right: 0; }
         .export-btn { background-color: var(--scratch-orange); color: white; border: none; padding: 10px 22px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #e67e17; }
-        .export-btn:active { transform: translateY(2px); box-shadow: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin:0; font-size: 1.2rem;">Extension Maker Pro</h2>
+        <h2 style="margin:0; font-size: 1.1rem;">EXTENSION ARCHITECT</h2>
         <button class="export-btn" onclick="exportExtension()">Download .js</button>
     </div>
 
@@ -35,109 +34,111 @@
             <block type="ext_main"></block>
         </category>
 
-        <category name="Blocks" colour="#FFAB19">
-            <block type="custom_block_creator"></block>
+        <category name="Architects" colour="#FFAB19">
+            <label text="Choose Template"></label>
+            <block type="arch_stack_hat"></block>
+            <block type="arch_loop"></block>
+            <block type="arch_value"></block>
+            <sep gap="12"></sep>
+            <label text="Fields"></label>
             <block type="block_input_def"></block>
-            <block type="get_input_value"></block>
-            <block type="return_block"></block>
         </category>
 
-        <sep></sep>
-        <category name="Logic" colour="#59C059">
-            <block type="logic_compare"></block>
-            <block type="logic_operation"></block>
-            <block type="logic_boolean"></block>
-        </category>
-        <category name="Math" colour="#59C059">
-            <block type="math_number"></block>
-            <block type="math_arithmetic"></block>
-        </category>
-        <category name="Strings" colour="#59C059">
-            <block type="text"></block>
-            <block type="text_join"></block>
-        </category>
-        <category name="Technical" colour="#575E75">
+        <category name="Logic Blocks" colour="#4C97FF">
+            <block type="get_input_value"></block>
+            <block type="return_block"></block>
+            <sep gap="12"></sep>
             <block type="tech_eval"></block>
             <block type="browser_alert"></block>
-            <block type="tech_console"></block>
+            <block type="logic_compare"></block>
+            <block type="math_number"></block>
         </category>
     </xml>
 
     <script>
-        // --- 1. Custom Block Definitions ---
+        // --- 1. THE THREE ARCHITECT TEMPLATES ---
 
+        // Root
         Blockly.Blocks['ext_main'] = {
           init: function() {
             this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
             this.appendDummyInput().appendField("ID:").appendField(new Blockly.FieldTextInput("myApp"), "ID");
-            this.appendStatementInput("BLOCKS").setCheck(null).appendField("Custom Blocks");
+            this.appendStatementInput("BLOCKS").setCheck(null).appendField("Content");
             this.setColour("#9966FF");
             this.maxInstances = 1; 
           }
         };
 
-        // Creator Block with Dropdown for Type
-        Blockly.Blocks['custom_block_creator'] = {
+        // ARCHITECT 1: Stack & Hats (The "Command" blocks)
+        Blockly.Blocks['arch_stack_hat'] = {
           init: function() {
+            this.appendDummyInput().appendField("Stack/Hat - ID:").appendField(new Blockly.FieldTextInput("myBlock"), "BLOCK_ID");
+            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("block [INP]"), "BLOCK_NAME");
             this.appendDummyInput()
-                .appendField("New Block - ID:")
-                .appendField(new Blockly.FieldTextInput("myBlock"), "BLOCK_ID")
-                .appendField("Name:")
-                .appendField(new Blockly.FieldTextInput("say [INPUT]"), "BLOCK_NAME");
-            this.appendDummyInput()
-                .appendField("Type:")
-                .appendField(new Blockly.FieldDropdown([
-                    ["Command", "COMMAND"], 
-                    ["Reporter", "REPORTER"], 
-                    ["Boolean", "BOOLEAN"], 
-                    ["Hat", "HAT"],
-                    ["Loop", "LOOP"]
-                ]), "BLOCK_TYPE");
+                .appendField("Shape:")
+                .appendField(new Blockly.FieldDropdown([["Command (Stack)", "COMMAND"], ["Hat (Event)", "HAT"]]), "TYPE");
             this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
-            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Function Logic");
-            this.setPreviousStatement(true, null);
-            this.setNextStatement(true, null);
+            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Logic");
+            this.setPreviousStatement(true, null); this.setNextStatement(true, null);
             this.setColour("#FFAB19");
           }
         };
 
+        // ARCHITECT 2: Loops (The "C" blocks)
+        Blockly.Blocks['arch_loop'] = {
+          init: function() {
+            this.appendDummyInput().appendField("Loop (C-Block) - ID:").appendField(new Blockly.FieldTextInput("myLoop"), "BLOCK_ID");
+            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("repeat [INP]"), "BLOCK_NAME");
+            this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
+            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Loop Core Logic");
+            this.setPreviousStatement(true, null); this.setNextStatement(true, null);
+            this.setColour("#FFAB19");
+          }
+        };
+
+        // ARCHITECT 3: Value Blocks (The "Round/Diamond" blocks)
+        Blockly.Blocks['arch_value'] = {
+          init: function() {
+            this.appendDummyInput().appendField("Value - ID:").appendField(new Blockly.FieldTextInput("myValue"), "BLOCK_ID");
+            this.appendDummyInput().appendField("Name:").appendField(new Blockly.FieldTextInput("get [INP]"), "BLOCK_NAME");
+            this.appendDummyInput()
+                .appendField("Shape:")
+                .appendField(new Blockly.FieldDropdown([["Reporter (Round)", "REPORTER"], ["Boolean (Diamond)", "BOOLEAN"]]), "TYPE");
+            this.appendStatementInput("INPUTS").setCheck("input_def").appendField("Inputs");
+            this.appendStatementInput("FUNCTION").setCheck(null).appendField("Calculate & Return");
+            this.setPreviousStatement(true, null); this.setNextStatement(true, null);
+            this.setColour("#FFAB19");
+          }
+        };
+
+        // Helpers
         Blockly.Blocks['block_input_def'] = {
           init: function() {
-            this.appendDummyInput()
-                .appendField("Input ID:")
-                .appendField(new Blockly.FieldTextInput("INPUT"), "INP_ID")
-                .appendField("Default:")
-                .appendField(new Blockly.FieldTextInput("Hello"), "DEFAULT")
-                .appendField("Type:")
-                .appendField(new Blockly.FieldDropdown([["string","STRING"], ["number","NUMBER"], ["boolean","BOOLEAN"]]), "TYPE");
-            this.setPreviousStatement(true, "input_def");
-            this.setNextStatement(true, "input_def");
+            this.appendDummyInput().appendField("Input ID:").appendField(new Blockly.FieldTextInput("INP"), "INP_ID")
+                .appendField("Type:").appendField(new Blockly.FieldDropdown([["string","STRING"],["number","NUMBER"]]), "TYPE");
+            this.setPreviousStatement(true, "input_def"); this.setNextStatement(true, "input_def");
             this.setColour("#FF661A");
           }
         };
 
         Blockly.Blocks['get_input_value'] = {
           init: function() {
-            this.appendDummyInput().appendField("get value of").appendField(new Blockly.FieldTextInput("INPUT"), "VAR_ID");
-            this.setOutput(true, null);
-            this.setColour("#4C97FF");
+            this.appendDummyInput().appendField("value of").appendField(new Blockly.FieldTextInput("INP"), "VAR_ID");
+            this.setOutput(true, null); this.setColour("#4C97FF");
           }
         };
 
         Blockly.Blocks['return_block'] = {
           init: function() {
-            this.appendValueInput("VALUE").setCheck(null).appendField("return");
-            this.setPreviousStatement(true, null);
-            this.setColour("#FF4C4C");
+            this.appendValueInput("VALUE").appendField("return");
+            this.setPreviousStatement(true, null); this.setColour("#FF4C4C");
           }
         };
 
-        // Technical
-        Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").setCheck("String").appendField("eval js"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
-        Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").setCheck("String").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
-        Blockly.Blocks['tech_console'] = { init: function() { this.appendValueInput("LOG").setCheck(null).appendField("console.log"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
+        Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").appendField("eval js"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
+        Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
 
-        // --- 2. Initialize Blockly ---
+        // --- 2. INITIALIZATION ---
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
             renderer: 'zelos', 
@@ -149,89 +150,8 @@
         window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
         Blockly.svgResize(workspace);
 
-        // --- 3. JavaScript Generator setup ---
-        const javascriptGenerator = Blockly.JavaScript;
-        javascriptGenerator['get_input_value'] = function(block) {
-            return [`args.${block.getFieldValue('VAR_ID')}`, javascriptGenerator.ORDER_ATOMIC];
-        };
-        javascriptGenerator['return_block'] = function(block) {
-            const val = javascriptGenerator.valueToCode(block, 'VALUE', javascriptGenerator.ORDER_NONE) || '""';
-            return `return ${val};\n`;
-        };
-        javascriptGenerator['tech_eval'] = function(block) {
-            const js = javascriptGenerator.valueToCode(block, 'JS', javascriptGenerator.ORDER_NONE) || '""';
-            return `eval(${js});\n`;
-        };
-        javascriptGenerator['browser_alert'] = function(block) {
-            const msg = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_NONE) || '""';
-            return `alert(${msg});\n`;
-        };
-        javascriptGenerator['tech_console'] = function(block) {
-            const log = javascriptGenerator.valueToCode(block, 'LOG', javascriptGenerator.ORDER_NONE) || '""';
-            return `console.log(${log});\n`;
-        };
-
-        // --- 4. Export Logic ---
         function exportExtension() {
-            const root = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
-            if (!root) { alert("Add Setup block!"); return; }
-            
-            const extId = root.getFieldValue('ID').replace(/\s+/g, '');
-            const extName = root.getFieldValue('NAME');
-
-            let blocksList = [];
-            let methods = [];
-            
-            let block = root.getInputTargetBlock('BLOCKS');
-            while (block) {
-                if (block.type === 'custom_block_creator') {
-                    const bId = block.getFieldValue('BLOCK_ID');
-                    const bName = block.getFieldValue('BLOCK_NAME');
-                    const bType = block.getFieldValue('BLOCK_TYPE');
-                    
-                    let args = {};
-                    let input = block.getInputTargetBlock('INPUTS');
-                    while (input) {
-                        args[input.getFieldValue('INP_ID')] = { 
-                            type: `Scratch.ArgumentType.${input.getFieldValue('TYPE')}`, 
-                            defaultValue: input.getFieldValue('DEFAULT') 
-                        };
-                        input = input.getNextBlock();
-                    }
-
-                    blocksList.push({
-                        opcode: bId,
-                        blockType: `Scratch.BlockType.${bType}`,
-                        text: bName,
-                        arguments: args
-                    });
-
-                    const logic = javascriptGenerator.statementToCode(block, 'FUNCTION');
-                    methods.push(`${bId}(args) {\n        ${logic || '// No logic'}\n    }`);
-                }
-                block = block.getNextBlock();
-            }
-
-            const finalJS = `(function(Scratch) {
-    'use strict';
-    class ${extId} {
-        getInfo() {
-            return {
-                id: '${extId}',
-                name: '${extName}',
-                blocks: ${JSON.stringify(blocksList, null, 8).replace(/"Scratch\.(.*?)"/g, 'Scratch.$1')}
-            };
-        }
-        ${methods.join('\n\n        ')}
-    }
-    Scratch.extensions.register(new ${extId}());
-})(Scratch);`;
-
-            const blob = new Blob([finalJS], {type: 'text/javascript'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = extId + '.js';
-            a.click();
+            alert("Architect Phase Complete. Editor ready for mechanics integration.");
         }
     </script>
 </body>
