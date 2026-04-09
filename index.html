@@ -1,43 +1,72 @@
-<xml id="toolbox" style="display: none">
-    <category name="Movement" colour="#4C97FF">
-        <block type="move_step"></block>
-    </category>
-    <category name="Events" colour="#FFD500">
-        <block type="event_when_run"></block>
-    </category>
-    <category name="Logic" colour="#59C059">
-        <block type="logic_compare"></block>
-        <block type="logic_operation"></block>
-        <block type="logic_boolean"></block>
-    </category>
-    <category name="Math" colour="#59C059">
-        <block type="math_number"></block>
-        <block type="math_arithmetic"></block>
-    </category>
-    <category name="Strings" colour="#59C059">
-        <block type="text"></block>
-        <block type="text_join"></block>
-    </category>
-    <category name="Sound" colour="#D65CD6">
-        <block type="sound_play"></block>
-    </category>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch Extension Maker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+</head>
+<body>
 
-    <sep></sep> <category name="Arrays" colour="#FF661A">
-        <block type="lists_create_with"></block>
-        <block type="lists_getIndex"></block>
-    </category>
-    <category name="Browser" colour="#00BFFF">
-        <block type="browser_alert"></block>
-        <block type="browser_open_url"></block>
-    </category>
-    <category name="Time" colour="#0FBD8C">
-        <block type="time_get_now"></block>
-    </category>
-    <category name="Lambda/Functions" colour="#9966FF">
-        <block type="procedures_defnoreturn"></block>
-        <block type="procedures_callnoreturn"></block>
-    </category>
-    <category name="Technical" colour="#575E75">
-        <block type="technical_eval"></block>
-    </category>
-</xml>
+    <div class="header">
+        <h1>Extension Maker</h1>
+        <button class="export-btn" onclick="exportExtension()">Download .js</button>
+    </div>
+
+    <div id="blocklyDiv"></div>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Extension Root" colour="#9966FF">
+            <block type="ext_main"></block>
+        </category>
+        
+        <sep></sep>
+
+        <category name="Movement" colour="#4C97FF">
+            <block type="move_step"></block>
+        </category>
+        <category name="Events" colour="#FFD500">
+            <block type="event_when_run"></block>
+        </category>
+        <category name="Math" colour="#59C059">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Logic" colour="#59C059">
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_boolean"></block>
+        </category>
+        <category name="Strings" colour="#59C059">
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
+        <category name="Arrays" colour="#FF661A">
+            <block type="lists_create_with"></block>
+            <block type="lists_getIndex"></block>
+        </category>
+        <category name="Sound" colour="#D65CD6">
+            <block type="sound_play"></block>
+        </category>
+        <category name="Browser" colour="#00BFFF">
+            <block type="browser_alert"></block>
+            <block type="browser_open"></block>
+        </category>
+        <category name="Time" colour="#0FBD8C">
+            <block type="time_now"></block>
+        </category>
+        <category name="Lambda" colour="#9966FF">
+            <block type="procedures_defnoreturn"></block>
+            <block type="procedures_callnoreturn"></block>
+        </category>
+        <category name="Technical" colour="#575E75">
+            <block type="tech_eval"></block>
+        </category>
+    </xml>
+
+    <script src="script.js"></script>
+</body>
+</html>
