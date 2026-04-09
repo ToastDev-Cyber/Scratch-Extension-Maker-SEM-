@@ -1,47 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scratch Extension Maker</title>
+    
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-    
+
     <style>
-        * { box-sizing: border-box; }
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            overflow: hidden; font-family: sans-serif; 
+        :root {
+            --scratch-blue: #4c97ff;
+            --scratch-orange: #ff8c1a;
         }
-        .header { 
-            height: 60px; background: #4c97ff; color: white; 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            position: relative; z-index: 100;
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
-        /* Crucial: The container must have a defined height */
+
+        .header {
+            height: 50px;
+            background-color: var(--scratch-blue);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 100;
+            position: relative;
+        }
+
         #blocklyArea {
-            height: calc(100vh - 60px);
+            height: calc(100vh - 50px);
             width: 100%;
             position: relative;
         }
+
         #blocklyDiv {
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
         }
+
         .export-btn {
-            background: #ff8c1a; border: none; color: white; 
-            padding: 10px 20px; border-radius: 20px; font-weight: bold; 
-            cursor: pointer; box-shadow: 0 3px 0 #e67e17;
+            background-color: var(--scratch-orange);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #e67e17;
         }
-        .export-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .export-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>Extension Maker</h2>
-        <button class="export-btn" onclick="downloadJS()">Download .js</button>
+        <strong>Scratch Extension Maker</strong>
+        <button class="export-btn" onclick="exportExtension()">Download .js</button>
     </div>
 
     <div id="blocklyArea">
@@ -49,20 +73,69 @@
     </div>
 
     <xml id="toolbox" style="display: none">
-        <category name="Movement" colour="#4C97FF"><block type="move_steps"></block></category>
-        <category name="Events" colour="#FFD500"><block type="event_hat"></block></category>
-        <category name="Math" colour="#59C059"><block type="math_number"></block></category>
-        <category name="Logic" colour="#59C059"><block type="logic_compare"></block></category>
-        <category name="Browser" colour="#00BFFF"><block type="browser_alert"></block></category>
-        <category name="Technical" colour="#575E75"><block type="tech_js"></block></category>
+        <category name="Setup" colour="#9966FF">
+            <block type="ext_main"></block>
+        </category>
+        <sep></sep>
+        <category name="Movement" colour="#4C97FF">
+            <block type="move_steps"></block>
+        </category>
+        <category name="Events" colour="#FFD500">
+            <block type="event_hat"></block>
+        </category>
+        <category name="Math" colour="#59C059">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Logic" colour="#59C059">
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+        </category>
+        <category name="Strings" colour="#59C059">
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
+        <category name="Arrays" colour="#FF661A">
+            <block type="lists_create_with"></block>
+            <block type="lists_getIndex"></block>
+        </category>
+        <category name="Sound" colour="#D65CD6">
+            <block type="sound_play"></block>
+        </category>
+        <category name="Browser" colour="#00BFFF">
+            <block type="browser_alert"></block>
+            <block type="browser_open"></block>
+        </category>
+        <category name="Time" colour="#0FBD8C">
+            <block type="time_now"></block>
+        </category>
+        <category name="Lambda" colour="#9966FF">
+            <block type="procedures_defnoreturn"></block>
+            <block type="procedures_callnoreturn"></block>
+        </category>
+        <category name="Technical" colour="#575E75">
+            <block type="tech_eval"></block>
+        </category>
     </xml>
 
     <script>
-        // 1. Custom Block Definitions
+        // --- 1. Custom Block Definitions ---
+
+        // Main Root Block (Max Instances: 1)
+        Blockly.Blocks['ext_main'] = {
+          init: function() {
+            this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
+            this.appendDummyInput().appendField("ID:").appendField(new Blockly.FieldTextInput("myApp"), "ID");
+            this.appendStatementInput("BLOCKS").setCheck(null).appendField("Blocks Logic");
+            this.setColour("#9966FF");
+            this.maxInstances = 1; // Prevents double roots
+          }
+        };
+
+        // Custom Category Blocks
         Blockly.Blocks['move_steps'] = {
             init: function() {
-                this.appendValueInput("STEPS").setCheck("Number").appendField("move");
-                this.appendDummyInput().appendField("steps");
+                this.appendValueInput("STEPS").setCheck("Number").appendField("move steps");
                 this.setPreviousStatement(true); this.setNextStatement(true);
                 this.setColour("#4C97FF");
             }
@@ -70,7 +143,7 @@
 
         Blockly.Blocks['event_hat'] = {
             init: function() {
-                this.appendDummyInput().appendField("when extension loaded");
+                this.appendDummyInput().appendField("when extension starts");
                 this.setNextStatement(true);
                 this.setColour("#FFD500");
             }
@@ -78,47 +151,101 @@
 
         Blockly.Blocks['browser_alert'] = {
             init: function() {
-                this.appendValueInput("MSG").setCheck("String").appendField("alert");
+                this.appendValueInput("TEXT").setCheck("String").appendField("alert");
                 this.setPreviousStatement(true); this.setNextStatement(true);
                 this.setColour("#00BFFF");
             }
         };
 
-        Blockly.Blocks['tech_js'] = {
+        Blockly.Blocks['browser_open'] = {
             init: function() {
-                this.appendDummyInput().appendField("execute raw JS");
-                this.appendValueInput("CODE").setCheck("String");
+                this.appendValueInput("URL").setCheck("String").appendField("open URL");
+                this.setPreviousStatement(true); this.setNextStatement(true);
+                this.setColour("#00BFFF");
+            }
+        };
+
+        Blockly.Blocks['time_now'] = {
+            init: function() {
+                this.appendDummyInput().appendField("current time (ms)");
+                this.setOutput(true, "Number");
+                this.setColour("#0FBD8C");
+            }
+        };
+
+        Blockly.Blocks['tech_eval'] = {
+            init: function() {
+                this.appendValueInput("JS").setCheck("String").appendField("run javascript");
                 this.setPreviousStatement(true); this.setNextStatement(true);
                 this.setColour("#575E75");
             }
         };
 
-        // 2. Setup Workspace
+        Blockly.Blocks['sound_play'] = {
+            init: function() {
+                this.appendValueInput("SND").setCheck("String").appendField("play sound");
+                this.setPreviousStatement(true); this.setNextStatement(true);
+                this.setColour("#D65CD6");
+            }
+        };
+
+        // --- 2. Initialize Blockly ---
         var blocklyArea = document.getElementById('blocklyArea');
         var blocklyDiv = document.getElementById('blocklyDiv');
         
         var workspace = Blockly.inject(blocklyDiv, {
             toolbox: document.getElementById('toolbox'),
-            renderer: 'zelos',
+            renderer: 'zelos', // This provides the Scratch look
+            theme: Blockly.Themes.Classic,
             zoom: {controls: true, wheel: true},
             trashcan: true
         });
 
-        // 3. The "Anti-White-Screen" Fix
-        // This forces Blockly to recalculate its size whenever the window changes
+        // --- 3. Resize Handler (Fixes the White Screen/Disappearing Blocks) ---
         var onresize = function(e) {
             Blockly.svgResize(workspace);
         };
         window.addEventListener('resize', onresize, false);
         onresize();
 
-        // 4. Download Function
-        function downloadJS() {
-            const code = "/* Generated Scratch Extension */\nconsole.log('Extension loaded!');";
+        // --- 4. Export Logic ---
+        function exportExtension() {
+            const root = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
+            if (!root) {
+                alert("Please add the 'Extension Name' block from the Setup category!");
+                return;
+            }
+
+            const name = root.getFieldValue('NAME');
+            const id = root.getFieldValue('ID').replace(/\s+/g, '');
+
+            // Simple generator template
+            const code = `(function(Scratch) {
+    class ${id} {
+        getInfo() {
+            return {
+                id: '${id}',
+                name: '${name}',
+                blocks: [
+                    {
+                        opcode: 'runLogic',
+                        blockType: Scratch.BlockType.COMMAND,
+                        text: 'run extension logic'
+                    }
+                ]
+            };
+        }
+        runLogic() {
+            console.log("${name} logic executed.");
+        }
+    }
+    Scratch.extensions.register(new ${id}());
+})(Scratch);`;
+
             const blob = new Blob([code], {type: 'text/javascript'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'extension.js';
+            a.download = id + '.js';
             a.click();
         }
     </script>
