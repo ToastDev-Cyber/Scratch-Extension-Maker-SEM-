@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extension Architect Pro</title>
+    <title>SEM - Scratch Extension Maker</title>
     
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
@@ -16,12 +16,13 @@
         #blocklyArea { height: calc(100vh - 55px); width: 100%; position: relative; }
         #blocklyDiv { position: absolute; top: 0; left: 0; bottom: 0; right: 0; }
         .export-btn { background-color: var(--scratch-orange); color: white; border: none; padding: 10px 22px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #e67e17; }
+        .export-btn:active { transform: translateY(2px); box-shadow: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin:0; font-size: 1.1rem;">EXTENSION ARCHITECT</h2>
+        <h2 style="margin:0; font-size: 1.2rem; letter-spacing: 1px;">SEM</h2>
         <button class="export-btn" onclick="exportExtension()">Download .js</button>
     </div>
 
@@ -35,10 +36,12 @@
         </category>
 
         <category name="Architects" colour="#FFAB19">
+            <label text="Templates"></label>
             <block type="arch_command_hat"></block>
             <block type="arch_value"></block>
             <block type="arch_loop"></block>
             <sep gap="24"></sep>
+            <label text="Block Logic Tools"></label>
             <block type="block_input_def"></block>
             <block type="get_input_value"></block>
             <block type="return_block"></block>
@@ -46,10 +49,46 @@
 
         <sep></sep>
         
+        <category name="Movement" colour="#4C97FF">
+            <block type="move_steps"></block>
+            <block type="move_goto"></block>
+        </category>
+
+        <category name="Sound" colour="#D65CD6">
+            <block type="sound_play"></block>
+            <block type="sound_stop_all"></block>
+        </category>
+
+        <category name="Events" colour="#FFD500">
+            <block type="event_hat_placeholder"></block>
+        </category>
+
+        <category name="Control" colour="#FFAB19">
+            <block type="controls_if"></block>
+            <block type="controls_repeat_ext"></block>
+            <block type="time_wait"></block>
+        </category>
+
+        <category name="Sensing" colour="#4CBFE6">
+            <block type="sensing_mousex"></block>
+            <block type="sensing_mousey"></block>
+            <block type="sensing_mousedown"></block>
+        </category>
+
         <category name="Operators" colour="#40BF4A">
             <block type="math_number"></block>
-            <block type="text"></block>
+            <block type="math_arithmetic"></block>
             <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_negate"></block>
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
+
+        <category name="Arrays" colour="#FF661A">
+            <block type="lists_create_with"></block>
+            <block type="lists_getIndex"></block>
+            <block type="lists_length"></block>
         </category>
 
         <category name="Technical" colour="#575E75">
@@ -66,77 +105,20 @@
     </xml>
 
     <script>
-        // --- 1. PREVIOUS DEFINITIONS ---
-        // (Architect blocks definitions go here - keeping previous logic)
-        
-        // ... (ext_main, arch_command_hat, arch_value, arch_loop, etc.) ...
-        // [Existing block code from previous responses should be kept here]
+        // --- 1. BLOCK DEFINITIONS ---
+        Blockly.Blocks['ext_main'] = { init: function() { this.appendDummyInput().appendField("SEM Extension:").appendField(new Blockly.FieldTextInput("My App"), "NAME").appendField("ID:").appendField(new Blockly.FieldTextInput("myApp"), "ID"); this.appendStatementInput("BLOCKS").appendField("Blocks"); this.setColour("#9966FF"); }};
 
-        // --- 2. NEW RAW BLOCK DEFINITIONS ---
+        Blockly.Blocks['arch_command_hat'] = { init: function() { this.appendDummyInput().appendField("Stack/Hat ID:").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("text"), "BLOCK_NAME"); this.appendDummyInput().appendField("Shape:").appendField(new Blockly.FieldDropdown([["Command", "COMMAND"], ["Hat", "HAT"]]), "TYPE"); this.appendStatementInput("INPUTS").appendField("Inputs"); this.appendStatementInput("FUNCTION").appendField("Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
+        Blockly.Blocks['arch_value'] = { init: function() { this.appendDummyInput().appendField("Value ID:").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("text"), "BLOCK_NAME"); this.appendDummyInput().appendField("Shape:").appendField(new Blockly.FieldDropdown([["Reporter", "REPORTER"], ["Boolean", "BOOLEAN"]]), "TYPE"); this.appendStatementInput("INPUTS").appendField("Inputs"); this.appendStatementInput("FUNCTION").appendField("Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
+        Blockly.Blocks['arch_loop'] = { init: function() { this.appendDummyInput().appendField("Loop ID:").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendDummyInput().appendField("Label:").appendField(new Blockly.FieldTextInput("text"), "BLOCK_NAME"); this.appendStatementInput("INPUTS").appendField("Inputs"); this.appendStatementInput("FUNCTION").appendField("C-Slot Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
 
-        // Raw Block (Stack)
-        Blockly.Blocks['raw_block'] = {
-          init: function() {
-            this.appendDummyInput()
-                .appendField("raw block")
-                .appendField(new Blockly.FieldTextInput("/* code */"), "CODE");
-            this.setPreviousStatement(true, null);
-            this.setNextStatement(true, null);
-            this.setColour("#575E75");
-          }
-        };
+        Blockly.Blocks['block_input_def'] = { init: function() { this.appendDummyInput().appendField("Input ID:").appendField(new Blockly.FieldTextInput("INP"), "INP_ID").appendField("Type:").appendField(new Blockly.FieldDropdown([["string","STRING"],["number","NUMBER"]]), "TYPE"); this.setPreviousStatement(true, "input_def"); this.setNextStatement(true, "input_def"); this.setColour("#FF661A"); }};
+        Blockly.Blocks['get_input_value'] = { init: function() { this.appendDummyInput().appendField("get arg").appendField(new Blockly.FieldTextInput("INP"), "VAR_ID"); this.setOutput(true); this.setColour("#4C97FF"); }};
+        Blockly.Blocks['return_block'] = { init: function() { this.appendValueInput("VALUE").appendField("return"); this.setPreviousStatement(true); this.setColour("#FF4C4C"); }};
 
-        // Raw Reporter (Round)
-        Blockly.Blocks['raw_reporter'] = {
-          init: function() {
-            this.appendDummyInput()
-                .appendField("raw reporter")
-                .appendField(new Blockly.FieldTextInput("1 + 1"), "CODE");
-            this.setOutput(true, null);
-            this.setColour("#575E75");
-          }
-        };
-
-        // Raw Boolean (Diamond)
-        Blockly.Blocks['raw_boolean'] = {
-          init: function() {
-            this.appendDummyInput()
-                .appendField("raw boolean")
-                .appendField(new Blockly.FieldTextInput("true"), "CODE");
-            this.setOutput(true, "Boolean");
-            this.setColour("#575E75");
-          }
-        };
-
-        // Re-adding essential placeholders for script to run
-        Blockly.Blocks['ext_main'] = { init: function() { this.appendDummyInput().appendField("Extension:").appendField(new Blockly.FieldTextInput("My App"), "NAME"); this.appendStatementInput("BLOCKS").appendField("Blocks"); this.setColour("#9966FF"); }};
-        Blockly.Blocks['arch_command_hat'] = { init: function() { this.appendDummyInput().appendField("Stack/Hat").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendStatementInput("FUNCTION").appendField("Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
-        Blockly.Blocks['arch_value'] = { init: function() { this.appendDummyInput().appendField("Value").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendStatementInput("FUNCTION").appendField("Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
-        Blockly.Blocks['arch_loop'] = { init: function() { this.appendDummyInput().appendField("Loop").appendField(new Blockly.FieldTextInput("id"), "BLOCK_ID"); this.appendStatementInput("FUNCTION").appendField("Logic"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FFAB19"); }};
-        Blockly.Blocks['block_input_def'] = { init: function() { this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#FF661A"); }};
-        Blockly.Blocks['get_input_value'] = { init: function() { this.setOutput(true); this.setColour("#4C97FF"); }};
-        Blockly.Blocks['return_block'] = { init: function() { this.setPreviousStatement(true); this.setColour("#FF4C4C"); }};
-        Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").appendField("eval"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
-        Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
-        Blockly.Blocks['tech_console'] = { init: function() { this.appendValueInput("LOG").appendField("console.log"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
-        Blockly.Blocks['math_number'] = { init: function() { this.appendDummyInput().appendField(new Blockly.FieldNumber(0), "NUM"); this.setOutput(true, "Number"); this.setColour("#40BF4A"); }};
-        Blockly.Blocks['text'] = { init: function() { this.appendDummyInput().appendField(new Blockly.FieldTextInput(""), "TEXT"); this.setOutput(true, "String"); this.setColour("#40BF4A"); }};
-        Blockly.Blocks['logic_compare'] = { init: function() { this.appendValueInput("A"); this.appendDummyInput().appendField("="); this.appendValueInput("B"); this.setOutput(true, "Boolean"); this.setColour("#40BF4A"); }};
-
-        // --- 3. INITIALIZATION ---
-        const workspace = Blockly.inject('blocklyDiv', {
-            toolbox: document.getElementById('toolbox'),
-            renderer: 'zelos', 
-            zoom: {controls: true, wheel: true, startScale: 0.8},
-            trashcan: true
-        });
-
-        window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
-        Blockly.svgResize(workspace);
-
-        function exportExtension() {
-            alert("Raw Technical blocks added to the architect library.");
-        }
-    </script>
-</body>
-</html>
+        Blockly.Blocks['move_steps'] = { init: function() { this.appendValueInput("STEPS").setCheck("Number").appendField("move steps"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#4C97FF"); }};
+        Blockly.Blocks['move_goto'] = { init: function() { this.appendValueInput("X").setCheck("Number").appendField("go to x:"); this.appendValueInput("Y").setCheck("Number").appendField("y:"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#4C97FF"); }};
+        Blockly.Blocks['sound_play'] = { init: function() { this.appendValueInput("SND").appendField("play sound URL"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#D65CD6"); }};
+        Blockly.Blocks['sound_stop_all'] = { init: function() { this.appendDummyInput().appendField("stop all sounds"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#D65CD6"); }};
+        Blockly.Blocks['event_hat_placeholder'] = { init: function() { this.appendDummyInput().appendField("when extension starts"); this.setNextStatement(true); this.setColour("#FFD500"); }};
+        Blockly.Blocks['time_wait'] = { init: function() { this.appendValueInput("SEC").setCheck("Number").appendField("wait seconds"); this
