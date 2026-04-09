@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Scratch Extension Maker</title>
+    <title>Scratch Extension Maker - Fixed</title>
     
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
@@ -34,7 +34,7 @@
         <category name="Setup" colour="#9966FF">
             <block type="ext_main"></block>
         </category>
-        
+
         <category name="Blocks" colour="#FFAB19">
             <block type="custom_block_creator"></block>
             <block type="block_input_def"></block>
@@ -43,20 +43,39 @@
 
         <sep></sep>
 
-        <category name="Movement" colour="#4C97FF"><block type="move_steps"></block></category>
-        <category name="Events" colour="#FFD500"><block type="event_hat"></block></category>
-        <category name="Math" colour="#59C059"><block type="math_number"></block><block type="math_arithmetic"></block></category>
-        <category name="Logic" colour="#59C059"><block type="logic_compare"></block><block type="logic_operation"></block></category>
-        <category name="Strings" colour="#59C059"><block type="text"></block><block type="text_join"></block></category>
-        <category name="Arrays" colour="#FF661A"><block type="lists_create_with"></block></category>
-        <category name="Browser" colour="#00BFFF"><block type="browser_alert"></block></category>
-        <category name="Technical" colour="#575E75"><block type="tech_eval"></block></category>
+        <category name="Movement" colour="#4C97FF">
+            <block type="move_steps"></block>
+        </category>
+        <category name="Events" colour="#FFD500">
+            <block type="event_hat"></block>
+        </category>
+        <category name="Math" colour="#59C059">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Logic" colour="#59C059">
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+        </category>
+        <category name="Strings" colour="#59C059">
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
+        <category name="Arrays" colour="#FF661A">
+            <block type="lists_create_with"></block>
+        </category>
+        <category name="Browser" colour="#00BFFF">
+            <block type="browser_alert"></block>
+        </category>
+        <category name="Technical" colour="#575E75">
+            <block type="tech_eval"></block>
+        </category>
     </xml>
 
     <script>
-        // --- 1. Custom Block Definitions ---
+        // --- 1. Register All Block Types ---
 
-        // Root Extension
+        // Root Extension Block
         Blockly.Blocks['ext_main'] = {
           init: function() {
             this.appendDummyInput().appendField("Extension Name:").appendField(new Blockly.FieldTextInput("My App"), "NAME");
@@ -67,7 +86,7 @@
           }
         };
 
-        // NEW: The Custom Block Creator
+        // NEW: Custom Block Creator (The "Loop" Style Block)
         Blockly.Blocks['custom_block_creator'] = {
           init: function() {
             this.appendDummyInput()
@@ -84,11 +103,10 @@
             this.setPreviousStatement(true, null);
             this.setNextStatement(true, null);
             this.setColour("#FFAB19");
-            this.setTooltip("Use [ID] in the name to create a placeholder.");
           }
         };
 
-        // NEW: Input Definition Block
+        // NEW: Input Definition
         Blockly.Blocks['block_input_def'] = {
           init: function() {
             this.appendDummyInput()
@@ -115,13 +133,13 @@
           }
         };
 
-        // Standard placeholders
+        // Movement & Standard Blocks
         Blockly.Blocks['move_steps'] = { init: function() { this.appendValueInput("STEPS").setCheck("Number").appendField("move steps"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#4C97FF"); }};
         Blockly.Blocks['event_hat'] = { init: function() { this.appendDummyInput().appendField("when extension starts"); this.setNextStatement(true); this.setColour("#FFD500"); }};
         Blockly.Blocks['browser_alert'] = { init: function() { this.appendValueInput("TEXT").setCheck("String").appendField("alert"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#00BFFF"); }};
         Blockly.Blocks['tech_eval'] = { init: function() { this.appendValueInput("JS").setCheck("String").appendField("eval js"); this.setPreviousStatement(true); this.setNextStatement(true); this.setColour("#575E75"); }};
 
-        // --- 2. Initialize Blockly ---
+        // --- 2. Inject Blockly ---
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
             renderer: 'zelos', 
@@ -138,37 +156,24 @@
         function exportExtension() {
             const root = workspace.getAllBlocks(false).find(b => b.type === 'ext_main');
             if (!root) { alert("Add the Extension Root block first!"); return; }
-
-            const name = root.getFieldValue('NAME');
+            
             const id = root.getFieldValue('ID').replace(/\s+/g, '');
+            const name = root.getFieldValue('NAME');
 
-            // This is a mockup of the generation logic
-            // In a production app, you would use Blockly.JavaScript.statementToCode to iterate over blocks
-            const finalCode = `(function(Scratch) {
-    'use strict';
+            const code = `(function(Scratch) {
     class ${id} {
         getInfo() {
             return {
                 id: '${id}',
                 name: '${name}',
-                blocks: [
-                    {
-                        opcode: 'dynamicBlock',
-                        blockType: Scratch.BlockType.REPORTER,
-                        text: 'Custom Block Logic Here',
-                        arguments: {}
-                    }
-                ]
+                blocks: []
             };
-        }
-        dynamicBlock(args) {
-            return "Block logic output";
         }
     }
     Scratch.extensions.register(new ${id}());
 })(Scratch);`;
 
-            const blob = new Blob([finalCode], {type: 'text/javascript'});
+            const blob = new Blob([code], {type: 'text/javascript'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = id + '.js';
