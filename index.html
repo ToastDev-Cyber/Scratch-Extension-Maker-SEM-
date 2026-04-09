@@ -10,29 +10,32 @@
         :root { --scratch-blue: #4C97FF; --dark-bg: #111; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: sans-serif; overflow: hidden; background: #f9f9f9; }
         
-        /* Navbar Styling */
+        /* Navbar */
         .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
         .tab-button { padding: 8px 20px; border: none; border-radius: 5px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
         .tab-button.active { background: white; color: var(--scratch-blue); }
-        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
         .copy-btn { margin-left: auto; background: #9966FF; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
+        /* Views */
         .view-content { height: calc(100vh - 50px); width: 100%; display: none; }
         .view-content.active { display: block; }
         #blocklyDiv { height: 100%; width: 100%; }
         #codeSection { background: var(--dark-bg); color: #00FF41; padding: 20px; box-sizing: border-box; overflow-y: auto; font-family: 'Courier New', monospace; white-space: pre; height: 100%; margin: 0; }
         
+        /* Designer Panel */
         .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
         .row { display: flex; align-items: center; gap: 10px; justify-content: center; }
         input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
         .add-block-btn { background: var(--scratch-blue); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* Modal Styling */
+        /* Settings Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 10px; width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-header { font-weight: bold; font-size: 1.2em; margin-bottom: 15px; }
-        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; }
-        .close-modal { background: var(--scratch-blue); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+        .modal-content h3 { margin-top: 0; color: #333; }
+        .modal-content label { display: block; margin: 10px 0 5px; font-size: 0.9em; font-weight: bold; text-align: left; }
+        .modal-content input { width: 100%; box-sizing: border-box; }
+        .close-modal { width: 100%; background: var(--scratch-blue); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -47,23 +50,20 @@
 
     <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Extension Global Settings</div>
-            <div style="display:flex; flex-direction:column; gap:10px; text-align:left;">
-                <label>Extension Name:</label>
-                <input type="text" id="extName" value="My Extension">
-                
-                <label>Extension ID (no spaces):</label>
-                <input type="text" id="extID" value="customExtension">
-                
-                <label>Primary Color:</label>
-                <input type="color" id="extColor1" value="#FF6680">
-                
-                <label>Secondary Color:</label>
-                <input type="color" id="extColor2" value="#D9556D">
-            </div>
-            <div class="modal-footer">
-                <button class="close-modal" onclick="toggleModal(false)">Save & Close</button>
-            </div>
+            <h3>Extension Settings</h3>
+            <label>Extension Name:</label>
+            <input type="text" id="extName" value="My Extension">
+            
+            <label>Internal ID (No spaces):</label>
+            <input type="text" id="extID" value="myCustomExt">
+            
+            <label>Primary Color (Blocks):</label>
+            <input type="color" id="extColor1" value="#FF6680" onchange="updateTheme()">
+            
+            <label>Secondary Color (Menu):</label>
+            <input type="color" id="extColor2" value="#D9556D">
+            
+            <button class="close-modal" onclick="toggleModal(false)">Save & Close</button>
         </div>
     </div>
 
@@ -74,6 +74,7 @@
     <div id="blocks" class="view-content">
         <div class="config-panel">
             <h2>Block Designer</h2>
+            <p>Use <b>(10)</b> for numbers, <b>[abc]</b> for text, <b>&lt;&gt;</b> for booleans, and <b>()</b> for reporters.</p>
             <div class="row">
                 <input type="text" id="blockName" style="width: 80%;" placeholder="Example: move (10) steps if <>">
             </div>
@@ -88,7 +89,7 @@
             </div>
             <button class="add-block-btn" onclick="createNewBlock()">Add Block</button>
             <div style="margin-top:20px;">
-                <h3>Active Custom Blocks</h3>
+                <h3>Current Block List</h3>
                 <ul id="blockList" style="list-style:none; padding:0; text-align:left;"></ul>
             </div>
         </div>
@@ -117,10 +118,26 @@
             document.getElementById('settingsModal').style.display = show ? 'block' : 'none';
         }
 
+        function updateTheme() {
+            const color = document.getElementById('extColor1').value;
+            // Update the category color in the toolbox
+            const toolbox = document.getElementById('toolbox');
+            const customCat = toolbox.querySelector('category[name="Custom"]');
+            if (customCat) customCat.setAttribute('colour', color);
+            workspace.updateToolbox(toolbox);
+            
+            // Re-color existing blocks in the workspace
+            customBlocks.forEach(b => {
+                const block = workspace.getBlockById(b.id);
+                if (block) block.setColour(color);
+            });
+        }
+
         function createNewBlock() {
             const rawLabel = document.getElementById('blockName').value || 'my block';
             const shape = document.getElementById('blockShape').value;
-            const id = 'c_' + Date.now();
+            const themeColor = document.getElementById('extColor1').value;
+            const blockId = 'c_' + Date.now();
 
             const patterns = [
                 { regex: /\(([^)]+)\)/g, type: 'math_number', name: 'NUM' },
@@ -136,13 +153,12 @@
             patterns.forEach(p => {
                 blocklyLabel = blocklyLabel.replace(p.regex, (match, val) => {
                     argCount++;
-                    const argName = p.name + argCount;
-                    args.push({ name: argName, type: p.type, default: val || '' });
+                    args.push({ name: p.name + argCount, type: p.type, default: val || '' });
                     return '%' + argCount;
                 });
             });
 
-            Blockly.Blocks[id] = {
+            Blockly.Blocks[blockId] = {
                 init: function() {
                     this.appendDummyInput().appendField(blocklyLabel);
                     args.forEach(arg => {
@@ -153,18 +169,17 @@
                     if (shape === 'REPORTER') { this.setOutput(true, 'Number'); }
                     if (shape === 'BOOLEAN') { this.setOutput(true, 'Boolean'); }
                     if (shape === 'HAT') { this.setNextStatement(true); }
-                    this.setColour(document.getElementById('extColor1').value);
+                    this.setColour(themeColor);
                 }
             };
 
-            Blockly.JavaScript[id] = function(block) {
-                return '/* Block: ' + rawLabel + ' */\n';
-            };
+            Blockly.JavaScript[blockId] = function(block) { return ''; };
 
-            customBlocks.push({ id, name: rawLabel, shape, args });
+            customBlocks.push({ id: blockId, name: rawLabel, shape, args });
             updateToolbox();
+            
             const li = document.createElement('li');
-            li.style = "background:#eee; margin:5px 0; padding:8px; border-radius:4px; font-family:monospace;";
+            li.style = "background:#eee; margin:5px 0; padding:10px; border-radius:6px; font-family:monospace; border-left: 4px solid " + themeColor;
             li.textContent = rawLabel + ' (' + shape + ')';
             document.getElementById('blockList').appendChild(li);
             document.getElementById('blockName').value = '';
@@ -183,68 +198,47 @@
         }
 
         function generateFinalJS(innerCode) {
-            const extName = document.getElementById('extName').value;
-            const extID = document.getElementById('extID').value;
-            const color1 = document.getElementById('extColor1').value;
-            const color2 = document.getElementById('extColor2').value;
+            const name = document.getElementById('extName').value;
+            const id = document.getElementById('extID').value;
+            const c1 = document.getElementById('extColor1').value;
+            const c2 = document.getElementById('extColor2').value;
 
             const blockDefs = customBlocks.map(b => {
-                let scratchArgs = {};
+                let sArgs = {};
                 b.args.forEach(a => {
-                    let type = a.type === 'math_number' ? 'number' : (a.type === 'logic_boolean' ? 'boolean' : 'string');
-                    scratchArgs[a.name] = { type: type, defaultValue: a.default };
+                    let t = a.type === 'math_number' ? 'number' : (a.type === 'logic_boolean' ? 'boolean' : 'string');
+                    sArgs[a.name] = { type: t, defaultValue: a.default };
                 });
                 return `                    {
                         opcode: "${b.id}",
                         blockType: Scratch.BlockType.${b.shape},
                         text: "${b.name}",
-                        arguments: ${JSON.stringify(scratchArgs)}
+                        arguments: ${JSON.stringify(sArgs)}
                     }`;
             }).join(',\n');
 
             const protoLogic = customBlocks.map(b => {
-                return `    Extension.prototype["${b.id}"] = async (args, util) => {
-        // Logic for: ${b.name}
-    };`;
+                return `    Extension.prototype["${b.id}"] = async (args, util) => {\n        // Code for: ${b.name}\n    };`;
             }).join('\n\n');
 
-            return `(async function(Scratch) {
-    if (!Scratch.extensions.unsandboxed) return;
-    class Extension {
-        getInfo() {
-            return {
-                id: "${extID}",
-                name: "${extName}",
-                color1: "${color1}",
-                color2: "${color2}",
-                blocks: [
-                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run logic" },
-${blockDefs}
-                ]
-            };
-        }
-    }
-    Extension.prototype["main"] = async (args, util) => {
-${innerCode}
-    };
-${protoLogic}
-    Scratch.extensions.register(new Extension());
-})(Scratch);`;
+            return `(async function(Scratch) {\n    if (!Scratch.extensions.unsandboxed) return;\n    class Extension {\n        getInfo() {\n            return {\n                id: "${id}",\n                name: "${name}",\n                color1: "${c1}",\n                color2: "${c2}",\n                blocks: [\n                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run extension logic" },\n${blockDefs}\n                ]\n            };\n        }\n    }\n    Extension.prototype["main"] = async (args, util) => {\n${innerCode}\n    };\n${protoLogic}\n    Scratch.extensions.register(new Extension());\n})(Scratch);`;
         }
 
-        function switchTab(id) {
-            document.querySelectorAll('.tab-button').forEach(b => {
-                b.classList.remove('active');
-                if(b.getAttribute('onclick').includes("'" + id + "'")) b.classList.add('active');
-            });
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.tab-button')).find(b => b.innerText.toLowerCase().includes(tabId));
+            if(activeBtn) activeBtn.classList.add('active');
+
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'code') document.getElementById('codeSection').textContent = generateFinalJS(Blockly.JavaScript.workspaceToCode(workspace));
-            if(id === 'editor') Blockly.svgResize(workspace);
+            document.getElementById(tabId).classList.add('active');
+            
+            if(tabId === 'code') document.getElementById('codeSection').textContent = generateFinalJS(Blockly.JavaScript.workspaceToCode(workspace));
+            if(tabId === 'editor') Blockly.svgResize(workspace);
         }
 
         function copyToClipboard() {
-            navigator.clipboard.writeText(document.getElementById('codeSection').textContent).then(() => alert("Copied!"));
+            const code = document.getElementById('codeSection').textContent;
+            navigator.clipboard.writeText(code).then(() => alert("Extension code copied!"));
         }
     </script>
 </body>
