@@ -9,7 +9,7 @@
     <style>
         :root { --scratch-blue: #4C97FF; --dark-bg: #111; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: sans-serif; overflow: hidden; background: #f9f9f9; }
-        .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
         .tab-button { padding: 8px 20px; border: none; border-radius: 5px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
         .tab-button.active { background: white; color: var(--scratch-blue); }
         .copy-btn { margin-left: auto; background: #9966FF; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
@@ -20,7 +20,8 @@
         .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .row { display: flex; align-items: center; gap: 10px; justify-content: center; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .add-block-btn { background: #ff6680; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; }
+        .add-block-btn { background: #ff6680; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .guide { background: #eee; padding: 10px; border-radius: 5px; font-size: 0.9em; text-align: left; }
     </style>
 </head>
 <body>
@@ -38,33 +39,29 @@
 
     <div id="blocks" class="view-content">
         <div class="config-panel">
-            <h2>Block Designer with Custom Shapes</h2>
+            <h2>Smart Block Designer</h2>
+            <div class="guide">
+                <b>Syntax Guide:</b><br>
+                • (10) = Number input (default 10)<br>
+                • [abc] = String/Letter input<br>
+                • <> = Boolean input<br>
+                • () = Empty Reporter input
+            </div>
             <div class="row">
-                <label>Label:</label>
-                <input type="text" id="blockName" placeholder="e.g. move [STEPS] steps">
-                <label>Color:</label>
+                <input type="text" id="blockName" style="width: 70%;" placeholder="e.g. move (10) steps if <>">
                 <input type="color" id="blockColor" value="#4C97FF">
             </div>
             <div class="row">
-                <label>Shape:</label>
+                <label>Block Shape:</label>
                 <select id="blockShape">
                     <option value="COMMAND">Stack (Command)</option>
                     <option value="REPORTER">Rounded (Reporter)</option>
                     <option value="BOOLEAN">Hexagon (Boolean)</option>
                     <option value="HAT">Hat (Event)</option>
                 </select>
-                <label>Corner Style:</label>
-                <select id="blockStyle">
-                    <option value="default">Default</option>
-                    <option value="square">Square Corners</option>
-                    <option value="beveled">Beveled Corners (Integers Style)</option>
-                    <option value="rounded">Maximum Rounded</option>
-                </select>
             </div>
-            <p style="font-size: 0.8em; color: #666;">Use <b>[INPUT_NAME]</b> in the label for inputs.</p>
-            <button class="add-block-btn" onclick="createNewBlock()">Create Block & Register Hat Logic</button>
-            <hr style="width:100%">
-            <div id="history"><h3>Registered Blocks</h3><ul id="blockList"></ul></div>
+            <button class="add-block-btn" onclick="createNewBlock()">Add Block to Custom Category</button>
+            <div id="history"><h3>Created Blocks</h3><ul id="blockList"></ul></div>
         </div>
     </div>
 
@@ -79,33 +76,9 @@
     </xml>
 
     <script>
-        // 1. Defining a new visual visual styles for Blockly.
-        class CustomVisualRenderer extends Blockly.zelos.ConstantProvider {
-            constructor() {
-                super();
-                this.BEVELED_CORNER_RADIUS = 3; 
-            }
-            
-            // This defines how input corner blocks look (the beveled edges in Integers)
-            makeNotch() {
-                // Return SVG path for beveled corner
-                return 'M -1,0 l 1,-1 a 1,1 0 0,1 1,0 l 1,1 a 1,1 0 0,0 1,0 l 1,-1 a 1,1 0 0,1 1,0 l 1,1 z';
-            }
-        }
-
-        // 2. We overwrite the default constant provider for ZELOS.
-        class BeveledZelos extends Blockly.zelos.Renderer {
-            makeConstants_() {
-                return new CustomVisualRenderer();
-            }
-        }
-
-        // 3. And register the renderer with Blockly.
-        Blockly.registry.register(Blockly.registry.Type.RENDERER, 'beveled_zelos', BeveledZelos);
-
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
-            renderer: 'zelos', // We keep the workspace default.
+            renderer: 'zelos',
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
 
@@ -115,52 +88,52 @@
             const rawLabel = document.getElementById('blockName').value || 'my block';
             const color = document.getElementById('blockColor').value;
             const shape = document.getElementById('blockShape').value;
-            const style = document.getElementById('blockStyle').value; // Get the custom style.
-            const id = 'c_' + rawLabel.toLowerCase().replace(/[^a-z0-9]/g, '_') + Date.now();
+            const id = 'c_' + Date.now();
 
-            const inputRegex = /\[([^\]]+)\]/g;
-            let match;
-            const args = [];
+            // Regex for patterns: (num), [str], <>, ()
+            const patterns = [
+                { regex: /\(([^)]+)\)/g, type: 'math_number', name: 'NUM' },    // (10)
+                { regex: /\[([^\]]+)\]/g, type: 'text', name: 'STR' },          // [abc]
+                { regex: /<>/g, type: 'logic_boolean', name: 'BOOL' },          // <>
+                { regex: /\(\)/g, type: 'reporter', name: 'REP' }               // ()
+            ];
+
             let blocklyLabel = rawLabel;
+            const args = [];
+            let argCount = 0;
 
-            while ((match = inputRegex.exec(rawLabel)) !== null) {
-                args.push(match[1]);
-                blocklyLabel = blocklyLabel.replace(match[0], '%'+args.length);
-            }
+            patterns.forEach(p => {
+                blocklyLabel = blocklyLabel.replace(p.regex, (match, val) => {
+                    argCount++;
+                    const argName = p.name + argCount;
+                    args.push({ name: argName, type: p.type, default: val || '' });
+                    return '%' + argCount;
+                });
+            });
 
             Blockly.Blocks[id] = {
                 init: function() {
-                    const input = this.appendDummyInput().appendField(blocklyLabel);
-                    args.forEach((arg, i) => {
-                        this.appendValueInput(arg);
+                    this.appendDummyInput().appendField(blocklyLabel);
+                    args.forEach(arg => {
+                        let input = this.appendValueInput(arg.name);
+                        if(arg.type === 'logic_boolean') input.setCheck('Boolean');
                     });
                     if (shape === 'COMMAND') { this.setPreviousStatement(true); this.setNextStatement(true); }
                     if (shape === 'REPORTER') { this.setOutput(true, 'Number'); }
                     if (shape === 'BOOLEAN') { this.setOutput(true, 'Boolean'); }
                     if (shape === 'HAT') { this.setNextStatement(true); }
                     this.setColour(color);
-                    
-                    // Here we apply the visual style. 
-                    // This is VERY advanced Blockly territory.
-                    if(style !== 'default'){
-                        this.setStyle = function() {
-                            // This would require modifying how the view is rendered,
-                            // which you can't do in a simple maker tool.
-                            console.log("Applying visual style: " + style + " is complex.");
-                        };
-                    }
                 }
             };
 
             Blockly.JavaScript[id] = function(block) {
-                const argCode = args.map(a => Blockly.JavaScript.valueToCode(block, a, Blockly.JavaScript.ORDER_ATOMIC) || "''").join(', ');
-                return 'await Extension.prototype["' + id + '"]({ ' + args.map((a,i) => a + ': ' + (argCode.split(',')[i] || "''")).join(', ') + ' }, util);\n';
+                return '/* Executing ' + rawLabel + ' */\n';
             };
 
-            customBlocks.push({ id, name: rawLabel, color, shape, args, style }); // Keep track of style.
+            customBlocks.push({ id, name: rawLabel, color, shape, args });
             updateToolbox();
-            document.getElementById('blockList').innerHTML += '<li>' + rawLabel + ' (' + shape + ' - ' + style + ')</li>';
-            alert('Block Registered!');
+            document.getElementById('blockList').innerHTML += '<li>' + rawLabel + '</li>';
+            alert('Created!');
         }
 
         function updateToolbox() {
@@ -170,57 +143,50 @@
             customBlocks.forEach(b => {
                 const blockXml = document.createElement('block');
                 blockXml.setAttribute('type', b.id);
-                // The issue here is how to apply the visual style to a generic toolbox element.
-                // You cannot easily define 'this block is beveled, this block is default'
-                // from the toolbox definition.
                 customCat.appendChild(blockXml);
             });
             workspace.updateToolbox(toolboxXml);
         }
 
-        // Generate final JS with special styles mentioned.
         function generateFinalJS(innerCode) {
             const blockDefs = customBlocks.map(b => {
-                let scratchText = b.name;
                 let scratchArgs = {};
-                b.args.forEach(arg => {
-                    scratchText = scratchText.replace('['+arg+']', '['+arg+']');
-                    scratchArgs[arg] = { type: "string", defaultValue: "" };
+                b.args.forEach(a => {
+                    let type = a.type === 'math_number' ? 'number' : (a.type === 'logic_boolean' ? 'boolean' : 'string');
+                    scratchArgs[a.name] = { type: type, defaultValue: a.default };
                 });
-                return '                    {\n                        opcode: "' + b.id + '",\n                        blockType: Scratch.BlockType.' + b.shape + ',\n                        text: "' + scratchText + '",\n                        arguments: ' + JSON.stringify(scratchArgs) + (b.style === 'beveled' ? ',\n                        isBeveled: true' : '') + '\n                    }';
+                return `                    {
+                        opcode: "${b.id}",
+                        blockType: Scratch.BlockType.${b.shape},
+                        text: "${b.name}",
+                        arguments: ${JSON.stringify(scratchArgs)}
+                    }`;
             }).join(',\n');
 
             const protoLogic = customBlocks.map(b => {
-                return '    Extension.prototype["' + b.id + '"] = async (args, util) => {\n        // Logic for ' + b.name + ' goes here\n        console.log("Executed ' + b.name + '", args);\n    };';
+                return `    Extension.prototype["${b.id}"] = async (args, util) => {
+        console.log("Block ${b.name} executed", args);
+    };`;
             }).join('\n\n');
 
             return `(async function(Scratch) {
-    const blocks = [];
-    if (!Scratch.extensions.unsandboxed) return alert("Unsandboxed mode required");
-
-    // NOTE: For custom block visual styles like 'beveled' edges to work,
-    // your extension must modify the renderer of the target editor.
-    // This requires VERY advanced Scratch VM knowledge and custom builds.
-    
+    if (!Scratch.extensions.unsandboxed) return;
     class Extension {
         getInfo() {
             return {
-                id: "customExtension",
-                name: "My Extension",
+                id: "customExt",
+                name: "Custom Extension",
                 blocks: [
-                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "start logic" },
+                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run" },
 ${blockDefs}
                 ]
             };
         }
     }
-
     Extension.prototype["main"] = async (args, util) => {
 ${innerCode}
     };
-
 ${protoLogic}
-
     Scratch.extensions.register(new Extension());
 })(Scratch);`;
         }
