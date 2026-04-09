@@ -9,28 +9,62 @@
     <style>
         :root { --scratch-blue: #4C97FF; --dark-bg: #111; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: sans-serif; overflow: hidden; background: #f9f9f9; }
+        
+        /* Navbar Styling */
         .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
         .tab-button { padding: 8px 20px; border: none; border-radius: 5px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
         .tab-button.active { background: white; color: var(--scratch-blue); }
+        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .copy-btn { margin-left: auto; background: #9966FF; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
         .view-content { height: calc(100vh - 50px); width: 100%; display: none; }
         .view-content.active { display: block; }
         #blocklyDiv { height: 100%; width: 100%; }
         #codeSection { background: var(--dark-bg); color: #00FF41; padding: 20px; box-sizing: border-box; overflow-y: auto; font-family: 'Courier New', monospace; white-space: pre; height: 100%; margin: 0; }
-        .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
         .row { display: flex; align-items: center; gap: 10px; justify-content: center; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .add-block-btn { background: #ff6680; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .guide { background: #eee; padding: 10px; border-radius: 5px; font-size: 0.9em; text-align: left; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .add-block-btn { background: var(--scratch-blue); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* Modal Styling */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius: 10px; width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-header { font-weight: bold; font-size: 1.2em; margin-bottom: 15px; }
+        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; }
+        .close-modal { background: var(--scratch-blue); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
+        <button class="settings-btn" onclick="toggleModal(true)">⚙️ Settings</button>
         <button class="tab-button active" onclick="switchTab('editor')">Editor</button>
         <button class="tab-button" onclick="switchTab('blocks')">Blocks</button>
         <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Extension Global Settings</div>
+            <div style="display:flex; flex-direction:column; gap:10px; text-align:left;">
+                <label>Extension Name:</label>
+                <input type="text" id="extName" value="My Extension">
+                
+                <label>Extension ID (no spaces):</label>
+                <input type="text" id="extID" value="customExtension">
+                
+                <label>Primary Color:</label>
+                <input type="color" id="extColor1" value="#FF6680">
+                
+                <label>Secondary Color:</label>
+                <input type="color" id="extColor2" value="#D9556D">
+            </div>
+            <div class="modal-footer">
+                <button class="close-modal" onclick="toggleModal(false)">Save & Close</button>
+            </div>
+        </div>
     </div>
 
     <div id="editor" class="view-content active">
@@ -39,20 +73,12 @@
 
     <div id="blocks" class="view-content">
         <div class="config-panel">
-            <h2>Smart Block Designer</h2>
-            <div class="guide">
-                <b>Syntax Guide:</b><br>
-                • (10) = Number input (default 10)<br>
-                • [abc] = String/Letter input<br>
-                • <> = Boolean input<br>
-                • () = Empty Reporter input
+            <h2>Block Designer</h2>
+            <div class="row">
+                <input type="text" id="blockName" style="width: 80%;" placeholder="Example: move (10) steps if <>">
             </div>
             <div class="row">
-                <input type="text" id="blockName" style="width: 70%;" placeholder="e.g. move (10) steps if <>">
-                <input type="color" id="blockColor" value="#4C97FF">
-            </div>
-            <div class="row">
-                <label>Block Shape:</label>
+                <label>Shape:</label>
                 <select id="blockShape">
                     <option value="COMMAND">Stack (Command)</option>
                     <option value="REPORTER">Rounded (Reporter)</option>
@@ -60,8 +86,11 @@
                     <option value="HAT">Hat (Event)</option>
                 </select>
             </div>
-            <button class="add-block-btn" onclick="createNewBlock()">Add Block to Custom Category</button>
-            <div id="history"><h3>Created Blocks</h3><ul id="blockList"></ul></div>
+            <button class="add-block-btn" onclick="createNewBlock()">Add Block</button>
+            <div style="margin-top:20px;">
+                <h3>Active Custom Blocks</h3>
+                <ul id="blockList" style="list-style:none; padding:0; text-align:left;"></ul>
+            </div>
         </div>
     </div>
 
@@ -84,18 +113,20 @@
 
         const customBlocks = [];
 
+        function toggleModal(show) {
+            document.getElementById('settingsModal').style.display = show ? 'block' : 'none';
+        }
+
         function createNewBlock() {
             const rawLabel = document.getElementById('blockName').value || 'my block';
-            const color = document.getElementById('blockColor').value;
             const shape = document.getElementById('blockShape').value;
             const id = 'c_' + Date.now();
 
-            // Regex for patterns: (num), [str], <>, ()
             const patterns = [
-                { regex: /\(([^)]+)\)/g, type: 'math_number', name: 'NUM' },    // (10)
-                { regex: /\[([^\]]+)\]/g, type: 'text', name: 'STR' },          // [abc]
-                { regex: /<>/g, type: 'logic_boolean', name: 'BOOL' },          // <>
-                { regex: /\(\)/g, type: 'reporter', name: 'REP' }               // ()
+                { regex: /\(([^)]+)\)/g, type: 'math_number', name: 'NUM' },
+                { regex: /\[([^\]]+)\]/g, type: 'text', name: 'STR' },
+                { regex: /<>/g, type: 'logic_boolean', name: 'BOOL' },
+                { regex: /\(\)/g, type: 'reporter', name: 'REP' }
             ];
 
             let blocklyLabel = rawLabel;
@@ -122,18 +153,21 @@
                     if (shape === 'REPORTER') { this.setOutput(true, 'Number'); }
                     if (shape === 'BOOLEAN') { this.setOutput(true, 'Boolean'); }
                     if (shape === 'HAT') { this.setNextStatement(true); }
-                    this.setColour(color);
+                    this.setColour(document.getElementById('extColor1').value);
                 }
             };
 
             Blockly.JavaScript[id] = function(block) {
-                return '/* Executing ' + rawLabel + ' */\n';
+                return '/* Block: ' + rawLabel + ' */\n';
             };
 
-            customBlocks.push({ id, name: rawLabel, color, shape, args });
+            customBlocks.push({ id, name: rawLabel, shape, args });
             updateToolbox();
-            document.getElementById('blockList').innerHTML += '<li>' + rawLabel + '</li>';
-            alert('Created!');
+            const li = document.createElement('li');
+            li.style = "background:#eee; margin:5px 0; padding:8px; border-radius:4px; font-family:monospace;";
+            li.textContent = rawLabel + ' (' + shape + ')';
+            document.getElementById('blockList').appendChild(li);
+            document.getElementById('blockName').value = '';
         }
 
         function updateToolbox() {
@@ -149,6 +183,11 @@
         }
 
         function generateFinalJS(innerCode) {
+            const extName = document.getElementById('extName').value;
+            const extID = document.getElementById('extID').value;
+            const color1 = document.getElementById('extColor1').value;
+            const color2 = document.getElementById('extColor2').value;
+
             const blockDefs = customBlocks.map(b => {
                 let scratchArgs = {};
                 b.args.forEach(a => {
@@ -165,7 +204,7 @@
 
             const protoLogic = customBlocks.map(b => {
                 return `    Extension.prototype["${b.id}"] = async (args, util) => {
-        console.log("Block ${b.name} executed", args);
+        // Logic for: ${b.name}
     };`;
             }).join('\n\n');
 
@@ -174,10 +213,12 @@
     class Extension {
         getInfo() {
             return {
-                id: "customExt",
-                name: "Custom Extension",
+                id: "${extID}",
+                name: "${extName}",
+                color1: "${color1}",
+                color2: "${color2}",
                 blocks: [
-                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run" },
+                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run logic" },
 ${blockDefs}
                 ]
             };
