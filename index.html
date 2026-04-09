@@ -10,7 +10,6 @@
         :root {
             --scratch-blue: #4C97FF;
             --dark-bg: #111;
-            --tab-inactive: #333;
         }
         body, html {
             margin: 0; padding: 0;
@@ -36,14 +35,10 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
         }
         .tab-button.active {
             background: white;
             color: var(--scratch-blue);
-        }
-        .tab-button:hover:not(.active) {
-            background: rgba(255,255,255,0.3);
         }
         .copy-btn {
             margin-left: auto;
@@ -76,14 +71,31 @@
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
         }
-        .info-section {
+        .config-panel {
             padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
             text-align: center;
-            color: #666;
+        }
+        .config-panel input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-block-btn {
+            background: var(--scratch-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+
     <div class="navbar">
         <button class="tab-button active" onclick="switchTab('blocks')">Editor</button>
         <button class="tab-button" onclick="switchTab('editor')">Blocks</button>
@@ -92,9 +104,13 @@
     </div>
 
     <div id="blocks" class="view-content active">
-        <div class="info-section">
-            <h2>Block Configurator</h2>
-            <p>This is where you will define your custom block names and colors.</p>
+        <div class="config-panel">
+            <h2>Create Custom Block</h2>
+            <p>Define your block here, then find it in the "Custom" category in the Blocks tab.</p>
+            <input type="text" id="blockName" placeholder="Block Label (e.g. Move Forward)">
+            <input type="color" id="blockColor" value="#ffab19">
+            <br><br>
+            <button class="add-block-btn" onclick="createNewBlock()">Add Block to Toolbox</button>
         </div>
     </div>
 
@@ -110,10 +126,17 @@
         <category name="Logic" colour="#5C81A6">
             <block type="controls_if"></block>
             <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
         </category>
         <category name="Math" colour="#5CA65C">
             <block type="math_number"></block>
             <block type="math_arithmetic"></block>
+        </category>
+        <category name="Lists" colour="#745CA6">
+            <block type="lists_create_with"></block>
+            <block type="lists_length"></block>
+        </category>
+        <category name="Custom" colour="#FF6680" id="customCategory">
         </category>
     </xml>
 
@@ -123,6 +146,43 @@
             renderer: 'zelos',
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
+
+        const customBlocks = [];
+
+        function createNewBlock() {
+            const name = document.getElementById('blockName').value || 'my_block';
+            const color = document.getElementById('blockColor').value;
+            const type = 'custom_' + name.toLowerCase().replace(/\s+/g, '_') + Math.floor(Math.random() * 1000);
+
+            Blockly.Blocks[type] = {
+                init: function() {
+                    this.appendDummyInput().appendField(name);
+                    this.setPreviousStatement(true, null);
+                    this.setNextStatement(true, null);
+                    this.setColour(color);
+                }
+            };
+
+            Blockly.JavaScript[type] = function(block) {
+                return `// Executing custom block: ${name}\n`;
+            };
+
+            customBlocks.push(type);
+            updateToolbox();
+            alert(`Block "${name}" added to the Custom category!`);
+        }
+
+        function updateToolbox() {
+            const toolbox = document.getElementById('toolbox');
+            const customCat = toolbox.querySelector('#customCategory');
+            customCat.innerHTML = ''; 
+            customBlocks.forEach(type => {
+                const block = document.createElement('block');
+                block.setAttribute('type', type);
+                customCat.appendChild(block);
+            });
+            workspace.updateToolbox(toolbox);
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-button').forEach(btn => {
