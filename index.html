@@ -10,32 +10,23 @@
         :root { --scratch-blue: #4C97FF; --dark-bg: #111; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: sans-serif; overflow: hidden; background: #f9f9f9; }
         
-        /* Navbar */
         .navbar { height: 50px; background-color: var(--scratch-blue); display: flex; align-items: center; padding: 0 10px; gap: 10px; }
         .tab-button { padding: 8px 20px; border: none; border-radius: 5px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
         .tab-button.active { background: white; color: var(--scratch-blue); }
-        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); }
+        .settings-btn { background: #FFAB19; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .copy-btn { margin-left: auto; background: #9966FF; color: white; padding: 8px 15px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        /* Views */
         .view-content { height: calc(100vh - 50px); width: 100%; display: none; }
         .view-content.active { display: block; }
         #blocklyDiv { height: 100%; width: 100%; }
         #codeSection { background: var(--dark-bg); color: #00FF41; padding: 20px; box-sizing: border-box; overflow-y: auto; font-family: 'Courier New', monospace; white-space: pre; height: 100%; margin: 0; }
         
-        /* Designer Panel */
         .config-panel { padding: 20px; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; background: white; height: 90%; overflow-y: auto; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;}
-        .row { display: flex; align-items: center; gap: 10px; justify-content: center; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; }
         .add-block-btn { background: var(--scratch-blue); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* Settings Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
-        .modal-content h3 { margin-top: 0; color: #333; }
-        .modal-content label { display: block; margin: 10px 0 5px; font-size: 0.9em; font-weight: bold; text-align: left; }
-        .modal-content input { width: 100%; box-sizing: border-box; }
-        .close-modal { width: 100%; background: var(--scratch-blue); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 350px; }
     </style>
 </head>
 <body>
@@ -51,19 +42,10 @@
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <h3>Extension Settings</h3>
-            <label>Extension Name:</label>
-            <input type="text" id="extName" value="My Extension">
-            
-            <label>Internal ID (No spaces):</label>
-            <input type="text" id="extID" value="myCustomExt">
-            
-            <label>Primary Color (Blocks):</label>
-            <input type="color" id="extColor1" value="#FF6680" onchange="updateTheme()">
-            
-            <label>Secondary Color (Menu):</label>
-            <input type="color" id="extColor2" value="#D9556D">
-            
-            <button class="close-modal" onclick="toggleModal(false)">Save & Close</button>
+            <label>Name:</label><input type="text" id="extName" value="My Extension" style="width:100%"><br>
+            <label>ID:</label><input type="text" id="extID" value="myExt" style="width:100%"><br>
+            <label>Color:</label><input type="color" id="extColor1" value="#FF6680" style="width:100%"><br>
+            <button onclick="toggleModal(false)" style="margin-top:10px; width:100%;">Save</button>
         </div>
     </div>
 
@@ -73,24 +55,20 @@
 
     <div id="blocks" class="view-content">
         <div class="config-panel">
-            <h2>Block Designer</h2>
-            <p>Use <b>(10)</b> for numbers, <b>[abc]</b> for text, <b>&lt;&gt;</b> for booleans, and <b>()</b> for reporters.</p>
-            <div class="row">
-                <input type="text" id="blockName" style="width: 80%;" placeholder="Example: move (10) steps if <>">
-            </div>
-            <div class="row">
-                <label>Shape:</label>
-                <select id="blockShape">
-                    <option value="COMMAND">Stack (Command)</option>
-                    <option value="REPORTER">Rounded (Reporter)</option>
-                    <option value="BOOLEAN">Hexagon (Boolean)</option>
-                    <option value="HAT">Hat (Event)</option>
-                </select>
-            </div>
-            <button class="add-block-btn" onclick="createNewBlock()">Add Block</button>
-            <div style="margin-top:20px;">
-                <h3>Current Block List</h3>
-                <ul id="blockList" style="list-style:none; padding:0; text-align:left;"></ul>
+            <h2>Procedure Designer</h2>
+            <p>Define your block. It will create a <b>Definition Hat</b> in the editor.</p>
+            <input type="text" id="blockName" style="width: 80%;" placeholder="Example: move (10) steps if <>">
+            <br>
+            <select id="blockShape">
+                <option value="COMMAND">Stack Block</option>
+                <option value="REPORTER">Reporter Block</option>
+                <option value="BOOLEAN">Boolean Block</option>
+            </select>
+            <br>
+            <button class="add-block-btn" onclick="createNewBlock()">Create Definition Hat</button>
+            <div id="history" style="margin-top:20px; text-align:left;">
+                <h3>Procedures Created:</h3>
+                <ul id="blockList"></ul>
             </div>
         </div>
     </div>
@@ -102,7 +80,6 @@
     <xml id="toolbox" style="display: none">
         <category name="Logic" colour="#5C81A6"><block type="controls_if"></block><block type="logic_compare"></block></category>
         <category name="Math" colour="#5CA65C"><block type="math_number"></block><block type="math_arithmetic"></block></category>
-        <category name="Custom" colour="#FF6680" id="customCategory"></category>
     </xml>
 
     <script>
@@ -114,36 +91,21 @@
 
         const customBlocks = [];
 
-        function toggleModal(show) {
-            document.getElementById('settingsModal').style.display = show ? 'block' : 'none';
-        }
-
-        function updateTheme() {
-            const color = document.getElementById('extColor1').value;
-            // Update the category color in the toolbox
-            const toolbox = document.getElementById('toolbox');
-            const customCat = toolbox.querySelector('category[name="Custom"]');
-            if (customCat) customCat.setAttribute('colour', color);
-            workspace.updateToolbox(toolbox);
-            
-            // Re-color existing blocks in the workspace
-            customBlocks.forEach(b => {
-                const block = workspace.getBlockById(b.id);
-                if (block) block.setColour(color);
-            });
-        }
+        function toggleModal(show) { document.getElementById('settingsModal').style.display = show ? 'block' : 'none'; }
 
         function createNewBlock() {
             const rawLabel = document.getElementById('blockName').value || 'my block';
             const shape = document.getElementById('blockShape').value;
             const themeColor = document.getElementById('extColor1').value;
-            const blockId = 'c_' + Date.now();
+            
+            // Generate a clean opcode from the name
+            const cleanName = rawLabel.replace(/[^\w\s]|_/g, "").replace(/\s+/g, "_").toLowerCase();
+            const blockOpcode = cleanName + '_' + Math.floor(Math.random() * 1000);
 
             const patterns = [
                 { regex: /\(([^)]+)\)/g, type: 'math_number', name: 'NUM' },
                 { regex: /\[([^\]]+)\]/g, type: 'text', name: 'STR' },
-                { regex: /<>/g, type: 'logic_boolean', name: 'BOOL' },
-                { regex: /\(\)/g, type: 'reporter', name: 'REP' }
+                { regex: /<>/g, type: 'logic_boolean', name: 'BOOL' }
             ];
 
             let blocklyLabel = rawLabel;
@@ -153,55 +115,39 @@
             patterns.forEach(p => {
                 blocklyLabel = blocklyLabel.replace(p.regex, (match, val) => {
                     argCount++;
-                    args.push({ name: p.name + argCount, type: p.type, default: val || '' });
+                    const argId = p.name + argCount;
+                    args.push({ name: argId, type: p.type, default: val || '' });
                     return '%' + argCount;
                 });
             });
 
-            Blockly.Blocks[blockId] = {
+            // Define the custom definition Hat-Loop
+            Blockly.Blocks[blockOpcode] = {
                 init: function() {
-                    this.appendDummyInput().appendField(blocklyLabel);
-                    args.forEach(arg => {
-                        let input = this.appendValueInput(arg.name);
-                        if(arg.type === 'logic_boolean') input.setCheck('Boolean');
-                    });
-                    if (shape === 'COMMAND') { this.setPreviousStatement(true); this.setNextStatement(true); }
-                    if (shape === 'REPORTER') { this.setOutput(true, 'Number'); }
-                    if (shape === 'BOOLEAN') { this.setOutput(true, 'Boolean'); }
-                    if (shape === 'HAT') { this.setNextStatement(true); }
+                    this.appendDummyInput().appendField("define " + blocklyLabel);
+                    this.appendStatementInput("STACK");
                     this.setColour(themeColor);
+                    this.setTooltip("The code inside here runs when the block is called.");
                 }
             };
 
-            Blockly.JavaScript[blockId] = function(block) { return ''; };
+            Blockly.JavaScript[blockOpcode] = function(block) { return ''; };
 
-            customBlocks.push({ id: blockId, name: rawLabel, shape, args });
-            updateToolbox();
-            
-            const li = document.createElement('li');
-            li.style = "background:#eee; margin:5px 0; padding:10px; border-radius:6px; font-family:monospace; border-left: 4px solid " + themeColor;
-            li.textContent = rawLabel + ' (' + shape + ')';
-            document.getElementById('blockList').appendChild(li);
-            document.getElementById('blockName').value = '';
+            customBlocks.push({ opcode: blockOpcode, name: rawLabel, shape, args });
+
+            const newBlock = workspace.newBlock(blockOpcode);
+            newBlock.initSvg();
+            newBlock.render();
+            newBlock.moveBy(150, 50 + (customBlocks.length * 100));
+
+            document.getElementById('blockList').innerHTML += `<li><b>${rawLabel}</b> (opcode: ${blockOpcode})</li>`;
+            switchTab('editor');
         }
 
-        function updateToolbox() {
-            const toolboxXml = document.getElementById('toolbox');
-            const customCat = toolboxXml.querySelector('#customCategory');
-            customCat.innerHTML = '';
-            customBlocks.forEach(b => {
-                const blockXml = document.createElement('block');
-                blockXml.setAttribute('type', b.id);
-                customCat.appendChild(blockXml);
-            });
-            workspace.updateToolbox(toolboxXml);
-        }
-
-        function generateFinalJS(innerCode) {
+        function generateFinalJS() {
             const name = document.getElementById('extName').value;
             const id = document.getElementById('extID').value;
             const c1 = document.getElementById('extColor1').value;
-            const c2 = document.getElementById('extColor2').value;
 
             const blockDefs = customBlocks.map(b => {
                 let sArgs = {};
@@ -210,7 +156,7 @@
                     sArgs[a.name] = { type: t, defaultValue: a.default };
                 });
                 return `                    {
-                        opcode: "${b.id}",
+                        opcode: "${b.opcode}",
                         blockType: Scratch.BlockType.${b.shape},
                         text: "${b.name}",
                         arguments: ${JSON.stringify(sArgs)}
@@ -218,10 +164,44 @@
             }).join(',\n');
 
             const protoLogic = customBlocks.map(b => {
-                return `    Extension.prototype["${b.id}"] = async (args, util) => {\n        // Code for: ${b.name}\n    };`;
+                const hatBlock = workspace.getAllBlocks(false).find(block => block.type === b.opcode);
+                let innerCode = "";
+                if (hatBlock) {
+                    innerCode = Blockly.JavaScript.statementToCode(hatBlock, 'STACK');
+                }
+
+                // We map the args so they are accessible inside the code
+                const argMapping = b.args.map(a => `        const ${a.name} = args.${a.name};`).join('\n');
+
+                return `    /**
+     * Procedure: ${b.name}
+     */
+    Extension.prototype["${b.opcode}"] = async (args, util) => {
+${argMapping}
+${innerCode}
+    };`;
             }).join('\n\n');
 
-            return `(async function(Scratch) {\n    if (!Scratch.extensions.unsandboxed) return;\n    class Extension {\n        getInfo() {\n            return {\n                id: "${id}",\n                name: "${name}",\n                color1: "${c1}",\n                color2: "${c2}",\n                blocks: [\n                    { opcode: "main", blockType: Scratch.BlockType.COMMAND, text: "run extension logic" },\n${blockDefs}\n                ]\n            };\n        }\n    }\n    Extension.prototype["main"] = async (args, util) => {\n${innerCode}\n    };\n${protoLogic}\n    Scratch.extensions.register(new Extension());\n})(Scratch);`;
+            return `(async function(Scratch) {
+    if (!Scratch.extensions.unsandboxed) return;
+
+    class Extension {
+        getInfo() {
+            return {
+                id: "${id}",
+                name: "${name}",
+                color1: "${c1}",
+                blocks: [
+${blockDefs}
+                ]
+            };
+        }
+    }
+
+${protoLogic}
+
+    Scratch.extensions.register(new Extension());
+})(Scratch);`;
         }
 
         function switchTab(tabId) {
@@ -232,13 +212,12 @@
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             
-            if(tabId === 'code') document.getElementById('codeSection').textContent = generateFinalJS(Blockly.JavaScript.workspaceToCode(workspace));
+            if(tabId === 'code') document.getElementById('codeSection').textContent = generateFinalJS();
             if(tabId === 'editor') Blockly.svgResize(workspace);
         }
 
         function copyToClipboard() {
-            const code = document.getElementById('codeSection').textContent;
-            navigator.clipboard.writeText(code).then(() => alert("Extension code copied!"));
+            navigator.clipboard.writeText(document.getElementById('codeSection').textContent).then(() => alert("JS Copied!"));
         }
     </script>
 </body>
