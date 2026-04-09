@@ -1,35 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Scratch Extension Maker</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
-    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-</head>
-<body>
-    <div class="header">
-        <h1>Scratch Extension Maker</h1>
-        <button class="export-btn" onclick="exportExtension()">Download .js Extension</button>
-    </div>
+// Define custom Browser/Technical blocks
+Blockly.Blocks['browser_alert'] = {
+  init: function() {
+    this.appendValueInput("TEXT")
+        .setCheck("String")
+        .appendField("browser alert");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour("#00BFFF");
+  }
+};
 
-    <div id="blocklyDiv"></div>
+Blockly.Blocks['time_get_now'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("current timestamp");
+    this.setOutput(true, "Number");
+    this.setColour("#0FBD8C");
+  }
+};
 
-    <xml id="toolbox" style="display: none">
-        <category name="Events" colour="#FFD500">
-            <block type="ext_definition"></block>
-        </category>
-        <category name="Logic" colour="#4C97FF">
-            <block type="controls_if"></block>
-            <block type="logic_compare"></block>
-        </category>
-        <category name="Variables" colour="#FF8C1A">
-            <block type="math_number"></block>
-            <block type="text"></block>
-        </category>
-    </xml>
+Blockly.Blocks['technical_eval'] = {
+  init: function() {
+    this.appendValueInput("JS")
+        .setCheck("String")
+        .appendField("run raw javascript");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour("#575E75");
+  }
+};
 
-    <script src="script.js"></script>
-</body>
-</html>
+// Initialize the Workspace with the new Toolbox
+const workspace = Blockly.inject('blocklyDiv', {
+    toolbox: document.getElementById('toolbox'),
+    renderer: 'zelos',
+    theme: Blockly.Themes.Classic,
+    grid: { spacing: 25, length: 3, colour: '#ccc', snap: true },
+    zoom: { controls: true, wheel: true, startScale: 0.85 }
+});
