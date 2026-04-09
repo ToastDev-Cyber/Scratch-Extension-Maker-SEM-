@@ -88,7 +88,7 @@
             white-space: pre-wrap;
         }
 
-        #editorSection {
+        .info-section {
             padding: 40px;
             text-align: center;
             color: #666;
@@ -98,20 +98,20 @@
 <body>
 
     <div class="navbar">
-        <button class="tab-button" onclick="switchTab('editor')">Editor</button>
         <button class="tab-button active" onclick="switchTab('blocks')">Blocks</button>
+        <button class="tab-button" onclick="switchTab('editor')">Editor</button>
         <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
     </div>
 
-    <div id="editor" class="view-content">
-        <div id="editorSection">
+    <div id="blocks" class="view-content active">
+        <div class="info-section">
             <h2>Block Configurator</h2>
             <p>This is where you will define your custom block names and colors.</p>
         </div>
     </div>
 
-    <div id="blocks" class="view-content active">
+    <div id="editor" class="view-content">
         <div id="blocklyDiv"></div>
     </div>
 
@@ -152,7 +152,10 @@
                 const generatedCode = Blockly.JavaScript.workspaceToCode(workspace);
                 document.getElementById('codeSection').innerText = generatedCode;
             }
-            Blockly.svgResize(workspace);
+            
+            if(tabName === 'editor') {
+                Blockly.svgResize(workspace);
+            }
         }
 
         function copyToClipboard() {
