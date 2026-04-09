@@ -21,6 +21,7 @@
             background: #f9f9f9;
         }
 
+        /* Navigation */
         .navbar {
             height: 50px;
             background-color: var(--scratch-blue);
@@ -56,6 +57,7 @@
             cursor: pointer;
         }
 
+        /* View Content */
         .view-content {
             height: calc(100vh - 50px);
             width: 100%;
@@ -66,7 +68,11 @@
             display: block;
         }
 
-        #blocklyDiv { height: 100%; width: 100%; }
+        /* The Main Logic Workspace */
+        #blocklyDiv { 
+            height: 100%; 
+            width: 100%; 
+        }
 
         #codeSection {
             background: var(--dark-bg);
@@ -79,31 +85,34 @@
             white-space: pre-wrap;
         }
 
-        #rawEditor { padding: 20px; }
+        .padded-info { padding: 20px; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <button class="tab-button" onclick="switchTab('editor')">Editor</button>
-        <button class="tab-button active" onclick="switchTab('blocks')">Blocks</button>
+        <button class="tab-button active" onclick="switchTab('editor')">Editor</button>
+        <button class="tab-button" onclick="switchTab('blocks')">Blocks</button>
         <button class="tab-button" onclick="switchTab('raw')">Raw</button>
         <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
     </div>
 
-    <div id="editor" class="view-content">
-        <div style="padding: 20px;"><h2>Editor</h2><p>General settings go here.</p></div>
-    </div>
-
-    <div id="blocks" class="view-content active">
+    <div id="editor" class="view-content active">
         <div id="blocklyDiv"></div>
     </div>
 
+    <div id="blocks" class="view-content">
+        <div class="padded-info">
+            <h2>Blocks Management</h2>
+            <p>Use this section to define new block categories or manage your extension metadata.</p>
+        </div>
+    </div>
+
     <div id="raw" class="view-content">
-        <div id="rawEditor">
-            <h2>Raw Custom Blocks</h2>
-            <p>These blocks allow you to inject direct JavaScript code into your extension.</p>
+        <div class="padded-info">
+            <h2>Raw Code Settings</h2>
+            <p>Configure how your raw JS blocks interact with the Scratch VM.</p>
         </div>
     </div>
 
@@ -112,11 +121,11 @@
     </div>
 
     <xml id="toolbox" style="display: none">
-        <category name="Standard" colour="#5C81A6">
+        <category name="Logic" colour="#5C81A6">
             <block type="controls_if"></block>
-            <block type="math_number"></block>
+            <block type="logic_compare"></block>
         </category>
-        <category name="Raw JS" colour="#FF661A">
+        <category name="Raw Code" colour="#FF661A">
             <block type="raw_command"></block>
             <block type="raw_reporter"></block>
             <block type="raw_boolean"></block>
@@ -124,32 +133,28 @@
     </xml>
 
     <script>
-        // --- 1. Define the RAW Blocks ---
-        
-        // Raw Command Block (Stack block)
+        // Define Custom "Raw" Blocks
         Blockly.Blocks['raw_command'] = {
           init: function() {
             this.appendDummyInput()
                 .appendField("raw code")
-                .appendField(new Blockly.FieldTextInput("console.log('hi');"), "CODE");
+                .appendField(new Blockly.FieldTextInput("console.log('hello world');"), "CODE");
             this.setPreviousStatement(true, null);
             this.setNextStatement(true, null);
             this.setColour("#FF661A");
           }
         };
 
-        // Raw Reporter Block (Rounded)
         Blockly.Blocks['raw_reporter'] = {
           init: function() {
             this.appendDummyInput()
                 .appendField("raw value")
-                .appendField(new Blockly.FieldTextInput("Math.random()"), "CODE");
+                .appendField(new Blockly.FieldTextInput("Math.PI"), "CODE");
             this.setOutput(true, null);
             this.setColour("#FF661A");
           }
         };
 
-        // Raw Boolean Block (Hexagon)
         Blockly.Blocks['raw_boolean'] = {
           init: function() {
             this.appendDummyInput()
@@ -160,49 +165,54 @@
           }
         };
 
-        // --- 2. Define JavaScript Generators for Raw Blocks ---
-
+        // JS Generators
         javascriptGenerator.forBlock['raw_command'] = function(block) {
-          return block.getFieldValue('CODE') + '\n';
+          return block.getFieldValue('CODE') + ';\n';
         };
-
         javascriptGenerator.forBlock['raw_reporter'] = function(block) {
           return [block.getFieldValue('CODE'), javascriptGenerator.ORDER_ATOMIC];
         };
-
         javascriptGenerator.forBlock['raw_boolean'] = function(block) {
           return [block.getFieldValue('CODE'), javascriptGenerator.ORDER_ATOMIC];
         };
 
-        // --- 3. Initialize Workspace ---
+        // Initialize Workspace in the Editor Tab
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
             renderer: 'zelos',
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
 
-        // --- 4. Tab Logic ---
+        // Tab Management Logic
         function switchTab(tabName) {
+            // Update Tab Appearance
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
                 if(btn.innerText.toLowerCase() === tabName) btn.classList.add('active');
             });
 
+            // Show/Hide Content
             document.querySelectorAll('.view-content').forEach(view => {
                 view.classList.remove('active');
             });
             document.getElementById(tabName).classList.add('active');
 
-            if(tabName === 'code') {
+            // Handle Specific Tab Transitions
+            if (tabName === 'code') {
                 const code = javascriptGenerator.workspaceToCode(workspace);
-                document.getElementById('codeSection').innerText = code || "// No code generated.";
+                document.getElementById('codeSection').innerText = code || "// No logic blocks found in Editor.";
             }
-            if(tabName === 'blocks') { Blockly.svgResize(workspace); }
+
+            if (tabName === 'editor') {
+                // Ensure Blockly doesn't break when resizing or showing
+                Blockly.svgResize(workspace);
+            }
         }
 
+        // Clipboard Helper
         function copyToClipboard() {
             const code = document.getElementById('codeSection').innerText;
-            navigator.clipboard.writeText(code).then(() => alert("Copied!"));
+            navigator.clipboard.writeText(code).then(() => alert("JavaScript copied to clipboard!"));
         }
     </script>
 </body>
