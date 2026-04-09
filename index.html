@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scratch Extension Maker</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  
+  <style>
+    body { background-color: #fff; font-family: sans-serif; }
+    #blocklyDiv { height: 90vh; width: 100%; }
+    .header { height: 8vh; display: flex; align-items: center; padding-left: 20px; background: #4C97FF; color: white; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="header">My Scratch Extension Maker</div>
+  <div id="blocklyDiv"></div>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Logic" colour="#5C81A6">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+    </category>
+    <category name="Math" colour="#5CA65C">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+    </category>
+  </xml>
+
+  <script>
+    // 1. Initialize Blockly with the 'Zelos' (Scratch) renderer
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'),
+      renderer: 'zelos',  // This makes it look like Scratch!
+      grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+      zoom: { controls: true, wheel: true }
+    });
+
+    // 2. Function to see the code (you can link this to a button later)
+    function showCode() {
+      const code = Blockly.JavaScript.workspaceToCode(workspace);
+      console.log("Generated JavaScript for your Extension:", code);
+      alert("Check the console (F12) to see your generated JS!");
+    }
+  </script>
+</body>
+</html>
