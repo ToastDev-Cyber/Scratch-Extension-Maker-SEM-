@@ -1,139 +1,179 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Scratch Extension Maker</title>
-  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
-  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-  
-  <style>
-   :root {
-  --scratch-blue: #4C97FF;
-  --scratch-purple: #9966FF;
-  --dark-bg: #111111;
-  --panel-bg: #1e1e1e;
-  --text-light: #ffffff;
-}
+    <meta charset="utf-8">
+    <title>Scratch Extension Maker</title>
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    
+    <style>
+        :root {
+            --scratch-blue: #4C97FF;
+            --dark-bg: #111;
+            --tab-inactive: #333;
+        }
 
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden; /* Prevents double scrollbars */
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            font-family: sans-serif;
+            overflow: hidden;
+            background: #f9f9f9;
+        }
 
-/* The Top Navigation Bar */
-.navbar {
-  height: 50px;
-  background-color: var(--scratch-blue);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  z-index: 100;
-}
+        /* Top Navigation Bar */
+        .navbar {
+            height: 50px;
+            background-color: var(--scratch-blue);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-.logo {
-  font-weight: bold;
-  font-size: 1.2rem;
-  letter-spacing: 1px;
-}
+        .tab-button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-/* Layout Container */
-.main-container {
-  display: flex;
-  height: calc(100vh - 50px);
-  width: 100vw;
-}
+        .tab-button.active {
+            background: white;
+            color: var(--scratch-blue);
+        }
 
-/* Blockly Workspace Area */
-#blocklyDiv {
-  flex-grow: 1; /* Takes up remaining space */
-  height: 100%;
-}
+        .tab-button:hover:not(.active) {
+            background: rgba(255,255,255,0.3);
+        }
 
-/* The Side Panel for Code Preview */
-.code-preview {
-  width: 350px;
-  background-color: var(--panel-bg);
-  border-left: 2px solid #333;
-  display: flex;
-  flex-direction: column;
-}
+        .copy-btn {
+            margin-left: auto;
+            background: #9966FF;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-.code-header {
-  background: #333;
-  color: var(--scratch-blue);
-  padding: 10px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
+        /* View Content Sections */
+        .view-content {
+            height: calc(100vh - 50px);
+            width: 100%;
+            display: none;
+        }
 
-#generatedCode {
-  flex-grow: 1;
-  padding: 15px;
-  color: #00FF41; /* "Matrix" green code color */
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9rem;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  background: var(--dark-bg);
-}
+        .view-content.active {
+            display: block;
+        }
 
-/* Export Button Style */
-.export-btn {
-  background-color: var(--scratch-purple);
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-}
+        #blocklyDiv {
+            height: 100%;
+            width: 100%;
+        }
 
-.export-btn:hover {
-  background-color: #8555e5;
-  transform: scale(1.05);
-}
-  </style>
+        /* Code Preview Styling */
+        #codeSection {
+            background: var(--dark-bg);
+            color: #00FF41;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+
+        #editorSection {
+            padding: 40px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <div class="header">My Scratch Extension Maker</div>
-  <div id="blocklyDiv"></div>
 
-  <xml id="toolbox" style="display: none">
-    <category name="Logic" colour="#5C81A6">
-      <block type="controls_if"></block>
-      <block type="logic_compare"></block>
-    </category>
-    <category name="Math" colour="#5CA65C">
-      <block type="math_number"></block>
-      <block type="math_arithmetic"></block>
-    </category>
-  </xml>
+    <div class="navbar">
+        <button class="tab-button" onclick="switchTab('editor')">Editor</button>
+        <button class="tab-button active" onclick="switchTab('blocks')">Blocks</button>
+        <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
+        <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
 
-  <script>
-    // 1. Initialize Blockly with the 'Zelos' (Scratch) renderer
-    const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: document.getElementById('toolbox'),
-      renderer: 'zelos',  // This makes it look like Scratch!
-      grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
-      zoom: { controls: true, wheel: true }
-    });
+    <div id="editor" class="view-content">
+        <div id="editorSection">
+            <h2>Block Configurator</h2>
+            <p>This is where you will define your custom block names and colors.</p>
+        </div>
+    </div>
 
-    // 2. Function to see the code (you can link this to a button later)
-    function showCode() {
-      const code = Blockly.JavaScript.workspaceToCode(workspace);
-      console.log("Generated JavaScript for your Extension:", code);
-      alert("Check the console (F12) to see your generated JS!");
-    }
-  </script>
+    <div id="blocks" class="view-content active">
+        <div id="blocklyDiv"></div>
+    </div>
+
+    <div id="code" class="view-content">
+        <div id="codeSection"></div>
+    </div>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Logic" colour="#5C81A6">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+        </category>
+        <category name="Math" colour="#5CA65C">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+    </xml>
+
+    <script>
+        // Initialize Blockly
+        const workspace = Blockly.inject('blocklyDiv', {
+            toolbox: document.getElementById('toolbox'),
+            renderer: 'zelos',
+            grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            // Update Buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.toLowerCase().includes(tabName)) btn.classList.add('active');
+            });
+
+            // Update Content
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+
+            // If switching to code tab, update the code
+            if(tabName === 'code') {
+                const generatedCode = Blockly.JavaScript.workspaceToCode(workspace);
+                document.getElementById('codeSection').innerText = generatedCode || "// Drag some blocks first!";
+            }
+
+            // Resize Blockly workspace when returning to it
+            if(tabName === 'blocks') {
+                Blockly.svgResize(workspace);
+            }
+        }
+
+        // Copy Logic
+        function copyToClipboard() {
+            const code = document.getElementById('codeSection').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("Code copied!");
+            });
+        }
+    </script>
 </body>
 </html>
