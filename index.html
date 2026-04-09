@@ -37,11 +37,11 @@
 
     <div id="blocks" class="view-content">
         <div class="config-panel">
-            <h2>Block & Arg Designer</h2>
-            <p>Type your label. Use <b>[name]</b>, <b>(name)</b>, or <b>&lt;name&gt;</b> to create usable inputs.</p>
-            <input type="text" id="blockName" style="width: 80%;" placeholder="Example: calculate (a) + (b)">
+            <h2>Definition & Argument Designer</h2>
+            <p>Inputs: <b>[string]</b>, <b>(number)</b>, <b>&lt;boolean&gt;</b>, or <b>()</b></p>
+            <input type="text" id="blockName" style="width: 80%;" placeholder="log [message] if <condition>">
             <br>
-            <button class="add-block-btn" onclick="createNewBlock()">Create Block & Usable Args</button>
+            <button class="add-block-btn" onclick="createNewBlock()">Spawn Definition & Args</button>
         </div>
     </div>
 
@@ -50,12 +50,25 @@
     </div>
 
     <xml id="toolbox" style="display: none">
-        <category name="Logic" colour="#5C81A6"><block type="controls_if"></block><block type="ext_return"></block></category>
-        <category name="Math" colour="#5CA65C"><block type="math_number"></block><block type="math_arithmetic"></block></category>
+        <category name="Logic" colour="#5C81A6">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_boolean"></block>
+            <block type="ext_return"></block>
+        </category>
+        <category name="Math" colour="#5CA65C">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Text" colour="#5CA68D">
+            <block type="text"></block>
+            <block type="text_join"></block>
+        </category>
     </xml>
 
     <script>
-        // Return block implementation
+        // Stable Return block implementation
         Blockly.Blocks['ext_return'] = {
             init: function() {
                 this.appendValueInput("VALUE").appendField("return");
@@ -81,21 +94,26 @@
             const themeColor = "#9966FF";
             const blockOpcode = 'op_' + Math.random().toString(36).substr(2, 5);
 
-            // Parsing labels and types
+            // Robust Regex for parsing inputs
             const argRegex = /(\[[^\]]+\]|<[^>]+>|\([^)]+\)|\(\))/g;
             let textParts = rawLabel.split(argRegex);
             const args = [];
 
-            // Define the Definition Block
+            // 1. Create the Definition Hat Block
             Blockly.Blocks[blockOpcode] = {
                 init: function() {
                     let header = this.appendDummyInput().appendField("define");
                     textParts.forEach(part => {
                         if (!part) return;
                         if (part.match(argRegex)) {
-                            const label = part.replace(/[\[\]<>\(\)]/g, '') || "arg";
+                            // Extract just the label name inside the brackets/parens
+                            const labelName = part.replace(/[\[\]<>\(\)]/g, '') || "arg";
                             const type = part.startsWith('<') ? 'boolean' : 'reporter';
-                            args.push({ id: label.toUpperCase() + "_" + args.length, label, type });
+                            
+                            // Generate a unique ID for the JS args object
+                            const argId = labelName.toUpperCase().replace(/\W/g, '_') + "_" + args.length;
+                            args.push({ id: argId, label: labelName, type: type });
+                            
                             header.appendField(` ${part} `);
                         } else {
                             header.appendField(part);
@@ -107,38 +125,52 @@
             };
             Blockly.JavaScript[blockOpcode] = () => '';
 
-            // Create the Hat Block
             const defBlock = workspace.newBlock(blockOpcode);
             defBlock.initSvg(); defBlock.render();
-            defBlock.moveBy(50, 50 + (customBlocks.length * 150));
+            defBlock.moveBy(50, 50 + (customBlocks.length * 180));
 
-            // CREATE USABLE OUTPUT BLOCKS (The actual draggable reporters)
+            // 2. Create the DRAGGABLE Functional Argument Blocks
             args.forEach((arg, index) => {
                 const argOp = `arg_${blockOpcode}_${arg.id}`;
                 Blockly.Blocks[argOp] = {
                     init: function() {
                         this.appendDummyInput().appendField(arg.label);
+                        // Reporter shape for strings/nums, Hexagon for booleans
                         this.setOutput(true, arg.type === 'boolean' ? 'Boolean' : null);
-                        this.setColour("#FFAB19"); // Orange like Scratch args
+                        this.setColour("#FFAB19"); 
                     }
                 };
+                
+                // Maps the block directly to the JS "args" parameter
                 Blockly.JavaScript[argOp] = () => [`args.${arg.id}`, Blockly.JavaScript.ORDER_ATOMIC];
                 
-                // Spawn it next to the hat
                 const argBlock = workspace.newBlock(argOp);
                 argBlock.initSvg(); argBlock.render();
-                argBlock.moveBy(400, 50 + (customBlocks.length * 150) + (index * 45));
+                argBlock.moveBy(400, 50 + (customBlocks.length * 180) + (index * 45));
             });
 
-            customBlocks.push({ opcode: blockOpcode, name: rawLabel, args });
+            customBlocks.push({ opcode: blockOpcode, name: rawLabel, args: args });
             switchTab('editor');
         }
 
         function generateFinalJS() {
             const blockDefs = customBlocks.map(b => {
                 let sArgs = {};
-                b.args.forEach(a => { sArgs[a.id] = { type: a.type === 'boolean' ? 'boolean' : 'string', defaultValue: '' }; });
-                return `{ opcode: "${b.opcode}", blockType: "command", text: "${b.name.replace(/[\[\]<>\(\)]/g, '')}", arguments: ${JSON.stringify(sArgs)} }`;
+                b.args.forEach(a => { 
+                    sArgs[a.id] = { 
+                        type: a.type === 'boolean' ? 'boolean' : 'string', 
+                        defaultValue: a.type === 'boolean' ? 'false' : '' 
+                    }; 
+                });
+                
+                // Clean text for the final Scratch block menu
+                const cleanText = b.name.replace(/[\[\]<>\(\)]/g, '').trim();
+                return `                {
+                    opcode: "${b.opcode}",
+                    blockType: "command",
+                    text: "${cleanText}",
+                    arguments: ${JSON.stringify(sArgs)}
+                }`;
             }).join(',\n');
 
             const implementations = customBlocks.map(b => {
@@ -147,7 +179,23 @@
                 return `    Extension.prototype["${b.opcode}"] = async (args, util) => {\n${code}\n    };`;
             }).join('\n\n');
 
-            return `(async function(Scratch) {\n    class Extension {\n        getInfo() {\n            return {\n                id: "customExt",\n                name: "Custom Extension",\n                blocks: [\n${blockDefs}\n                ]\n            };\n        }\n    }\n${implementations}\n    Scratch.extensions.register(new Extension());\n})(Scratch);`;
+            return `(async function(Scratch) {
+    if (!Scratch.extensions.unsandboxed) return;
+
+    class Extension {
+        getInfo() {
+            return {
+                id: "customExt",
+                name: "Custom Extension",
+                blocks: [\n${blockDefs}\n                ]
+            };
+        }
+    }
+
+${implementations}
+
+    Scratch.extensions.register(new Extension());
+})(Scratch);`;
         }
 
         function switchTab(tabId) {
@@ -158,7 +206,7 @@
         }
 
         function copyToClipboard() {
-           navigator.clipboard.writeText(document.getElementById('codeSection').textContent).then(() => alert("JS Copied!"));
+            navigator.clipboard.writeText(document.getElementById('codeSection').textContent).then(() => alert("Extension code copied!"));
         }
     </script>
 </body>
