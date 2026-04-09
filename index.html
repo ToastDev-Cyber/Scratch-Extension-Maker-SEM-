@@ -8,9 +8,100 @@
   <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
   
   <style>
-    body { background-color: #fff; font-family: sans-serif; }
-    #blocklyDiv { height: 90vh; width: 100%; }
-    .header { height: 8vh; display: flex; align-items: center; padding-left: 20px; background: #4C97FF; color: white; font-weight: bold; }
+   :root {
+  --scratch-blue: #4C97FF;
+  --scratch-purple: #9966FF;
+  --dark-bg: #111111;
+  --panel-bg: #1e1e1e;
+  --text-light: #ffffff;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Prevents double scrollbars */
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* The Top Navigation Bar */
+.navbar {
+  height: 50px;
+  background-color: var(--scratch-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+}
+
+/* Layout Container */
+.main-container {
+  display: flex;
+  height: calc(100vh - 50px);
+  width: 100vw;
+}
+
+/* Blockly Workspace Area */
+#blocklyDiv {
+  flex-grow: 1; /* Takes up remaining space */
+  height: 100%;
+}
+
+/* The Side Panel for Code Preview */
+.code-preview {
+  width: 350px;
+  background-color: var(--panel-bg);
+  border-left: 2px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-header {
+  background: #333;
+  color: var(--scratch-blue);
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+#generatedCode {
+  flex-grow: 1;
+  padding: 15px;
+  color: #00FF41; /* "Matrix" green code color */
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  background: var(--dark-bg);
+}
+
+/* Export Button Style */
+.export-btn {
+  background-color: var(--scratch-purple);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.export-btn:hover {
+  background-color: #8555e5;
+  transform: scale(1.05);
+}
   </style>
 </head>
 <body>
