@@ -11,7 +11,6 @@
         :root {
             --scratch-blue: #4C97FF;
             --dark-bg: #111;
-            --tab-inactive: #333;
         }
 
         body, html {
@@ -22,7 +21,6 @@
             background: #f9f9f9;
         }
 
-        /* Top Navigation Bar */
         .navbar {
             height: 50px;
             background-color: var(--scratch-blue);
@@ -30,7 +28,6 @@
             align-items: center;
             padding: 0 10px;
             gap: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .tab-button {
@@ -41,16 +38,11 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .tab-button.active {
             background: white;
             color: var(--scratch-blue);
-        }
-
-        .tab-button:hover:not(.active) {
-            background: rgba(255,255,255,0.3);
         }
 
         .copy-btn {
@@ -64,7 +56,6 @@
             cursor: pointer;
         }
 
-        /* View Content Sections */
         .view-content {
             height: calc(100vh - 50px);
             width: 100%;
@@ -75,27 +66,20 @@
             display: block;
         }
 
-        #blocklyDiv {
-            height: 100%;
-            width: 100%;
-        }
+        #blocklyDiv { height: 100%; width: 100%; }
 
-        /* Code Preview Styling */
         #codeSection {
             background: var(--dark-bg);
             color: #00FF41;
             padding: 20px;
+            height: 100%;
             box-sizing: border-box;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
         }
 
-        #editorSection {
-            padding: 40px;
-            text-align: center;
-            color: #666;
-        }
+        #rawEditor { padding: 20px; }
     </style>
 </head>
 <body>
@@ -103,19 +87,24 @@
     <div class="navbar">
         <button class="tab-button" onclick="switchTab('editor')">Editor</button>
         <button class="tab-button active" onclick="switchTab('blocks')">Blocks</button>
+        <button class="tab-button" onclick="switchTab('raw')">Raw</button>
         <button class="tab-button" onclick="switchTab('code')">Copy JS</button>
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
     </div>
 
     <div id="editor" class="view-content">
-        <div id="editorSection">
-            <h2>Block Configurator</h2>
-            <p>This is where you will define your custom block names and colors.</p>
-        </div>
+        <div style="padding: 20px;"><h2>Editor</h2><p>General settings go here.</p></div>
     </div>
 
     <div id="blocks" class="view-content active">
         <div id="blocklyDiv"></div>
+    </div>
+
+    <div id="raw" class="view-content">
+        <div id="rawEditor">
+            <h2>Raw Custom Blocks</h2>
+            <p>These blocks allow you to inject direct JavaScript code into your extension.</p>
+        </div>
     </div>
 
     <div id="code" class="view-content">
@@ -123,56 +112,97 @@
     </div>
 
     <xml id="toolbox" style="display: none">
-        <category name="Logic" colour="#5C81A6">
+        <category name="Standard" colour="#5C81A6">
             <block type="controls_if"></block>
-            <block type="logic_compare"></block>
-        </category>
-        <category name="Math" colour="#5CA65C">
             <block type="math_number"></block>
-            <block type="math_arithmetic"></block>
+        </category>
+        <category name="Raw JS" colour="#FF661A">
+            <block type="raw_command"></block>
+            <block type="raw_reporter"></block>
+            <block type="raw_boolean"></block>
         </category>
     </xml>
 
     <script>
-        // Initialize Blockly
+        // --- 1. Define the RAW Blocks ---
+        
+        // Raw Command Block (Stack block)
+        Blockly.Blocks['raw_command'] = {
+          init: function() {
+            this.appendDummyInput()
+                .appendField("raw code")
+                .appendField(new Blockly.FieldTextInput("console.log('hi');"), "CODE");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour("#FF661A");
+          }
+        };
+
+        // Raw Reporter Block (Rounded)
+        Blockly.Blocks['raw_reporter'] = {
+          init: function() {
+            this.appendDummyInput()
+                .appendField("raw value")
+                .appendField(new Blockly.FieldTextInput("Math.random()"), "CODE");
+            this.setOutput(true, null);
+            this.setColour("#FF661A");
+          }
+        };
+
+        // Raw Boolean Block (Hexagon)
+        Blockly.Blocks['raw_boolean'] = {
+          init: function() {
+            this.appendDummyInput()
+                .appendField("raw boolean")
+                .appendField(new Blockly.FieldTextInput("true"), "CODE");
+            this.setOutput(true, "Boolean");
+            this.setColour("#FF661A");
+          }
+        };
+
+        // --- 2. Define JavaScript Generators for Raw Blocks ---
+
+        javascriptGenerator.forBlock['raw_command'] = function(block) {
+          return block.getFieldValue('CODE') + '\n';
+        };
+
+        javascriptGenerator.forBlock['raw_reporter'] = function(block) {
+          return [block.getFieldValue('CODE'), javascriptGenerator.ORDER_ATOMIC];
+        };
+
+        javascriptGenerator.forBlock['raw_boolean'] = function(block) {
+          return [block.getFieldValue('CODE'), javascriptGenerator.ORDER_ATOMIC];
+        };
+
+        // --- 3. Initialize Workspace ---
         const workspace = Blockly.inject('blocklyDiv', {
             toolbox: document.getElementById('toolbox'),
             renderer: 'zelos',
             grid: { spacing: 20, length: 3, colour: '#ccc', snap: true }
         });
 
-        // Tab Switching Logic
+        // --- 4. Tab Logic ---
         function switchTab(tabName) {
-            // Update Buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
-                if(btn.innerText.toLowerCase().includes(tabName)) btn.classList.add('active');
+                if(btn.innerText.toLowerCase() === tabName) btn.classList.add('active');
             });
 
-            // Update Content
             document.querySelectorAll('.view-content').forEach(view => {
                 view.classList.remove('active');
             });
             document.getElementById(tabName).classList.add('active');
 
-            // If switching to code tab, update the code
             if(tabName === 'code') {
-                const generatedCode = Blockly.JavaScript.workspaceToCode(workspace);
-                document.getElementById('codeSection').innerText = generatedCode || "// Drag some blocks first!";
+                const code = javascriptGenerator.workspaceToCode(workspace);
+                document.getElementById('codeSection').innerText = code || "// No code generated.";
             }
-
-            // Resize Blockly workspace when returning to it
-            if(tabName === 'blocks') {
-                Blockly.svgResize(workspace);
-            }
+            if(tabName === 'blocks') { Blockly.svgResize(workspace); }
         }
 
-        // Copy Logic
         function copyToClipboard() {
             const code = document.getElementById('codeSection').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                alert("Code copied!");
-            });
+            navigator.clipboard.writeText(code).then(() => alert("Copied!"));
         }
     </script>
 </body>
