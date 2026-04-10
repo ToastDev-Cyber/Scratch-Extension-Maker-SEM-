@@ -25,7 +25,16 @@
     <block type="text_print"></block>
   </xml>
 
-  <script src="script.js"></script>
+  <script>
+    window.onload = function () {
+      const workspace = Blockly.inject("blocklyDiv", {
+        toolbox: document.getElementById("toolbox"),
+        renderer: "zelos",
+        trashcan: true,
+        scrollbars: true
+      });
+    };
+  </script>
 
 </body>
 </html>
