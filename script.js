@@ -1,60 +1,31 @@
-Blockly.defineBlocksWithJsonArray([
-  {
-    "type": "sem_hat_loop",
-    "message0": "Hat Loop ID %1 Name %2 Type %3",
-    "args0": [
-      { "type": "field_input", "name": "ID", "text": "myBlock" },
-      { "type": "field_input", "name": "NAME", "text": "My Block" },
-      {
-        "type": "field_dropdown",
-        "name": "TYPE",
-        "options": [
-          ["Command", "COMMAND"],
-          ["Reporter", "REPORTER"],
-          ["Boolean", "BOOLEAN"]
-        ]
-      }
-    ],
-    "message1": "inputs %1",
-    "args1": [
-      { "type": "input_statement", "name": "INPUTS" }
-    ],
-    "message2": "function %1",
-    "args2": [
-      { "type": "input_statement", "name": "FUNCTION" }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 210
-  },
-  {
-    "type": "sem_input_block",
-    "message0": "input id %1 type %2 default %3",
-    "args0": [
-      { "type": "field_input", "name": "INPUT_ID", "text": "input1" },
-      {
-        "type": "field_dropdown",
-        "name": "INPUT_TYPE",
-        "options": [
-          ["Number", "NUMBER"],
-          ["Text", "TEXT"],
-          ["Boolean", "BOOLEAN"]
-        ]
-      },
-      { "type": "input_value", "name": "DEFAULT" }
-    ],
-    "output": null,
-    "colour": 160
-  }
-]);
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SEM</title>
 
-const workspace = Blockly.inject("blocklyDiv", {
-  toolbox: document.getElementById("toolbox"),
-  renderer: "zelos",
-  trashcan: true,
-  scrollbars: true,
-  zoom: {
-    controls: true,
-    wheel: true
-  }
-});
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/msg/en.js"></script>
+
+  <style>
+    body { margin: 0; }
+    #blocklyDiv { height: 100vh; width: 100%; }
+  </style>
+</head>
+
+<body>
+
+  <div id="blocklyDiv"></div>
+
+  <xml id="toolbox" style="display:none">
+    <block type="text"></block>
+    <block type="math_number"></block>
+    <block type="text_print"></block>
+  </xml>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
