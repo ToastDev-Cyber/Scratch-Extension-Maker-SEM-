@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Scratch Extension Maker (SEM)</title>
+  <title>SEM (Scratch Extension Maker)</title>
 
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 
@@ -11,42 +11,37 @@
 
 <body>
 
-  <!-- TOP BAR -->
   <div class="topbar">
     🧩 Scratch Extension Maker (SEM)
   </div>
 
-  <!-- MAIN -->
   <div class="main">
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
-      <h3>SEM Blocks</h3>
-      <p class="hint">Drag blocks → build your extension</p>
+      <h3>Blocks</h3>
+      <p>Drag & build like Scratch</p>
     </div>
 
-    <!-- BLOCK AREA -->
     <div id="blocklyDiv"></div>
 
   </div>
 
-  <!-- TOOLBOX -->
   <xml id="toolbox" style="display:none">
 
-    <category name="Input" colour="#4C97FF">
-      <block type="text"></block>
+    <category name="Motion" colour="#4C97FF">
       <block type="math_number"></block>
     </category>
 
-    <category name="Output" colour="#9966FF">
+    <category name="Looks" colour="#9966FF">
+      <block type="text"></block>
       <block type="text_print"></block>
     </category>
 
-    <category name="Logic" colour="#FFAB19">
+    <category name="Control" colour="#FFAB19">
       <block type="controls_if"></block>
     </category>
 
-    <category name="Compare" colour="#40BF4A">
+    <category name="Operators" colour="#40BF4A">
       <block type="logic_compare"></block>
     </category>
 
