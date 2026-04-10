@@ -1,45 +1,42 @@
 
-// Scratch-like Blockly theme
-const ScratchTheme = Blockly.Theme.defineTheme('scratchTheme', {
-  base: Blockly.Themes.Classic,
-  blockStyles: {
-    motion_blocks: {
-      colourPrimary: '#4C97FF'
-    },
-    looks_blocks: {
-      colourPrimary: '#9966FF'
-    },
-    control_blocks: {
-      colourPrimary: '#FFAB19'
-    },
-    operator_blocks: {
-      colourPrimary: '#40BF4A'
-    }
+// 🧩 Scratch-like Blockly setup using ZELOS renderer
+const workspace = Blockly.inject("blocklyDiv", {
+  toolbox: document.getElementById("toolbox"),
+
+  // ⭐ this makes it look closest to Scratch
+  renderer: "zelos",
+
+  trashcan: true,
+  scrollbars: true,
+
+  zoom: {
+    controls: true,
+    wheel: true,
+    startScale: 1.0,
+    maxScale: 3,
+    minScale: 0.3,
+    scaleSpeed: 1.2
   },
-  categoryStyles: {
-    motion_category: {
-      colour: '#4C97FF'
-    },
-    looks_category: {
-      colour: '#9966FF'
-    },
-    control_category: {
-      colour: '#FFAB19'
-    },
-    operator_category: {
-      colour: '#40BF4A'
-    }
+
+  grid: {
+    spacing: 20,
+    length: 3,
+    colour: "#ccc",
+    snap: true
   }
 });
 
-// inject Blockly
-const workspace = Blockly.inject("blocklyDiv", {
-  toolbox: document.getElementById("toolbox"),
-  theme: ScratchTheme,
-  trashcan: true,
-  scrollbars: true,
-  zoom: {
-    controls: true,
-    wheel: true
-  }
+
+//  optional: keeps workspace tidy
+workspace.addChangeListener(() => {
+  // you can later use this for autosave or live preview
+  // console.log("blocks changed");
 });
+
+
+//  placeholder (future step)
+// later we will convert blocks → Scratch extension JS
+function generateCode() {
+  const code = Blockly.JavaScript.workspaceToCode(workspace);
+  console.log(code);
+}
