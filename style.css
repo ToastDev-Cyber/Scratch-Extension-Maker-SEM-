@@ -1,10 +1,10 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #eaf2ff;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background: #dfefff;
 }
 
-/* TOP BAR */
+/* TOP BAR like Scratch */
 .topbar {
   background: #ff4c4c;
   color: white;
@@ -13,23 +13,18 @@ body {
   font-weight: bold;
 }
 
-/* LAYOUT */
+/* MAIN LAYOUT */
 .main {
   display: flex;
   height: calc(100vh - 50px);
 }
 
-/* SIDEBAR */
+/* SIDEBAR like Scratch categories panel */
 .sidebar {
-  width: 180px;
-  background: #1f1f1f;
+  width: 170px;
+  background: #2a2a2a;
   color: white;
   padding: 10px;
-}
-
-.hint {
-  font-size: 12px;
-  opacity: 0.7;
 }
 
 /* BLOCK AREA */
@@ -38,7 +33,24 @@ body {
   height: 100%;
 }
 
-/* Blockly theme tweak */
+/* 🧩 THIS is the key Scratch-like look */
 .blocklyToolboxDiv {
-  background: #1f1f1f !important;
+  background: #2a2a2a !important;
+  border-right: 2px solid #111;
+}
+
+/* category text like Scratch */
+.blocklyTreeLabel {
+  color: white !important;
+  font-weight: bold;
+}
+
+/* highlight selected category */
+.blocklyTreeSelected {
+  background: #555 !important;
+}
+
+/* blocks smoother look */
+.blocklySvg {
+  background-color: #eaf2ff !important;
 }
