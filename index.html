@@ -2,32 +2,50 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>SEM (Scratch Extension Maker)</title>
+  <title>SEM - Scratch Extension Maker</title>
 
-  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/msg/en.js"></script>
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #eaf2ff;
+    }
+
+    #blocklyDiv {
+      height: 100vh;
+      width: 100%;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: #ff4c4c;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-weight: bold;
+      z-index: 10;
+    }
+  </style>
 </head>
 
 <body>
-
   <div class="topbar">
-    🧩 Scratch Extension Maker (SEM)
+    Scratch Extension Maker (SEM)
   </div>
 
-  <div class="main">
-
-    <div class="sidebar">
-      <h3>Blocks</h3>
-      <p>Drag & build like Scratch</p>
-    </div>
-
-    <div id="blocklyDiv"></div>
-
-  </div>
+  <div id="blocklyDiv"></div>
 
   <xml id="toolbox" style="display:none">
-
     <category name="Motion" colour="#4C97FF">
       <block type="math_number"></block>
     </category>
@@ -44,10 +62,8 @@
     <category name="Operators" colour="#40BF4A">
       <block type="logic_compare"></block>
     </category>
-
   </xml>
 
   <script src="script.js"></script>
-
 </body>
 </html>
