@@ -2,48 +2,57 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Scratch Extension Maker</title>
+  <title>Scratch Extension Maker (SEM)</title>
 
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #f5f5ff;
-      text-align: center;
-    }
-
-    #blocklyDiv {
-      height: 600px;
-      width: 100%;
-    }
-
-    h1 {
-      margin: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <h1>Scratch Extension Maker</h1>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    🧩 Scratch Extension Maker (SEM)
+  </div>
 
-  <div id="blocklyDiv"></div>
+  <!-- MAIN -->
+  <div class="main">
 
-  <xml id="toolbox" style="display: none">
-    <block type="text"></block>
-    <block type="math_number"></block>
-    <block type="text_print"></block>
-    <block type="controls_if"></block>
-    <block type="logic_compare"></block>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <h3>SEM Blocks</h3>
+      <p class="hint">Drag blocks → build your extension</p>
+    </div>
+
+    <!-- BLOCK AREA -->
+    <div id="blocklyDiv"></div>
+
+  </div>
+
+  <!-- TOOLBOX -->
+  <xml id="toolbox" style="display:none">
+
+    <category name="Input" colour="#4C97FF">
+      <block type="text"></block>
+      <block type="math_number"></block>
+    </category>
+
+    <category name="Output" colour="#9966FF">
+      <block type="text_print"></block>
+    </category>
+
+    <category name="Logic" colour="#FFAB19">
+      <block type="controls_if"></block>
+    </category>
+
+    <category name="Compare" colour="#40BF4A">
+      <block type="logic_compare"></block>
+    </category>
+
   </xml>
 
-  <script>
-    const workspace = Blockly.inject("blocklyDiv", {
-      toolbox: document.getElementById("toolbox")
-    });
-  </script>
+  <script src="script.js"></script>
 
 </body>
 </html>
