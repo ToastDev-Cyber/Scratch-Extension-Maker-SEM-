@@ -1,31 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>SEM</title>
+Blockly.defineBlocksWithJsonArray([]);
 
-  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
-  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
-  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-  <script src="https://unpkg.com/blockly/msg/en.js"></script>
-
-  <style>
-    body { margin: 0; }
-    #blocklyDiv { height: 100vh; width: 100%; }
-  </style>
-</head>
-
-<body>
-
-  <div id="blocklyDiv"></div>
-
-  <xml id="toolbox" style="display:none">
-    <block type="text"></block>
-    <block type="math_number"></block>
-    <block type="text_print"></block>
-  </xml>
-
-  <script src="script.js"></script>
-
-</body>
-</html>
+const workspace = Blockly.inject("blocklyDiv", {
+  toolbox: document.getElementById("toolbox"),
+  renderer: "zelos",
+  trashcan: true,
+  scrollbars: true
+});
