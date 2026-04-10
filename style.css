@@ -1,130 +1,16 @@
-/* --- Root Variables for Scratch Colors --- */
-:root {
-    --scratch-blue: #4c97ff;
-    --scratch-purple: #9966ff;
-    --scratch-orange: #ff8c1a;
-    --scratch-dark-blue: #3373cc;
-    --background-gray: #f9f9f9;
-    --border-gray: #dddddd;
-    --text-white: #ffffff;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f3ff;
+  text-align: center;
 }
 
-/* --- Base Layout --- */
-* {
-    box-sizing: border-box;
+h1 {
+  margin: 10px;
 }
 
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    background-color: var(--background-gray);
-    overflow: hidden; /* Prevents double scrollbars with Blockly */
-}
-
-/* --- Navigation Header --- */
-.header {
-    height: 50px;
-    background-color: var(--scratch-blue);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 100;
-    position: relative;
-}
-
-.header h1 {
-    color: var(--text-white);
-    font-size: 1.2rem;
-    margin: 0;
-    font-weight: bold;
-}
-
-/* --- Buttons --- */
-.export-btn {
-    background-color: var(--scratch-orange);
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    box-shadow: 0 3px 0 #e67e17; /* Scratch-style bottom shadow */
-}
-
-.export-btn:hover {
-    background-color: #ffa54d;
-}
-
-.export-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #e67e17;
-}
-
-/* Removes the sticky highlight/focus ring after clicking */
-.export-btn:focus {
-    outline: none;
-}
-
-/* --- Blockly Workspace --- */
 #blocklyDiv {
-    position: absolute;
-    top: 50px; /* Sits exactly below the header */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: white;
-}
-
-/* --- Customizing the Blockly UI to look more like Scratch --- */
-
-/* The Toolbox (Sidebar) background */
-.blocklyToolboxDiv {
-    background-color: white !important;
-    border-right: 1px solid var(--border-gray);
-    color: #575e75;
-}
-
-/* Style the category labels in the toolbox */
-.blocklyTreeLabel {
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-/* Make the flyout (the part where blocks live) look clean */
-.blocklyFlyoutBackground {
-    fill: #f9f9f9 !important;
-    fill-opacity: 0.8 !important;
-}
-
-/* Scratch blocks usually have a specific "selected" glow */
-.blocklySelected > .blocklyPath {
-    stroke: var(--scratch-orange) !important;
-    stroke-width: 3px !important;
-}
-
-/* --- Scrollbars --- */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+  height: 600px;
+  width: 100%;
+  border-top: 2px solid #ddd;
 }
